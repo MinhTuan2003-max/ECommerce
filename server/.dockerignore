@@ -1,0 +1,27 @@
+# Build artifacts
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Maven
+.mvn/repository/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+*.env.local
+
+# Test files
+*.test.properties

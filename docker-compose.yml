@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+    backend:
+        image: tuanhm/backend:latest
+        ports:
+            - "8080:8080"
+        env_file:
+            - .env
+        depends_on:
+            - db
+
+    frontend:
+        image: tuanhm/frontend:latest
+        ports:
+            - "80:80"
+
+    db:
+        image: postgres:16
+        environment:
+            POSTGRES_DB: quiz
+            POSTGRES_USER: quiz
+            POSTGRES_PASSWORD: secret
