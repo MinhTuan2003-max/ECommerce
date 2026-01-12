@@ -1,4 +1,4 @@
-package fpt.tuanhm43.server.repositories.user;
+package fpt.tuanhm43.server.repositories;
 
 import fpt.tuanhm43.server.entities.Role;
 import org.springframework.data.jpa.repository.JpaRepository;

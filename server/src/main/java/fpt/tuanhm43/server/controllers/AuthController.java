@@ -1,9 +1,9 @@
 package fpt.tuanhm43.server.controllers;
 
 import fpt.tuanhm43.server.dtos.ApiResponseDTO;
-import fpt.tuanhm43.server.dtos.auth.AuthResponse;
-import fpt.tuanhm43.server.dtos.auth.LoginRequest;
-import fpt.tuanhm43.server.dtos.auth.RegisterRequest;
+import fpt.tuanhm43.server.dtos.auth.response.AuthResponse;
+import fpt.tuanhm43.server.dtos.auth.request.LoginRequest;
+import fpt.tuanhm43.server.dtos.auth.request.RegisterRequest;
 import fpt.tuanhm43.server.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

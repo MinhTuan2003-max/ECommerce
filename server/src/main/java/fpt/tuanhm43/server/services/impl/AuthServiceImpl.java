@@ -1,13 +1,13 @@
 package fpt.tuanhm43.server.services.impl;
 
-import fpt.tuanhm43.server.dtos.auth.AuthResponse;
-import fpt.tuanhm43.server.dtos.auth.LoginRequest;
-import fpt.tuanhm43.server.dtos.auth.RegisterRequest;
+import fpt.tuanhm43.server.dtos.auth.response.AuthResponse;
+import fpt.tuanhm43.server.dtos.auth.request.LoginRequest;
+import fpt.tuanhm43.server.dtos.auth.request.RegisterRequest;
 import fpt.tuanhm43.server.entities.Role;
 import fpt.tuanhm43.server.entities.User;
 import fpt.tuanhm43.server.exceptions.BadRequestException;
-import fpt.tuanhm43.server.repositories.user.RoleRepository;
-import fpt.tuanhm43.server.repositories.user.UserRepository;
+import fpt.tuanhm43.server.repositories.RoleRepository;
+import fpt.tuanhm43.server.repositories.UserRepository;
 import fpt.tuanhm43.server.services.AuthService;
 import fpt.tuanhm43.server.services.TokenService;
 import lombok.RequiredArgsConstructor;

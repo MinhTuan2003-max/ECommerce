@@ -2,8 +2,8 @@ package fpt.tuanhm43.server.config;
 
 import fpt.tuanhm43.server.entities.Role;
 import fpt.tuanhm43.server.entities.User;
-import fpt.tuanhm43.server.repositories.user.RoleRepository;
-import fpt.tuanhm43.server.repositories.user.UserRepository;
+import fpt.tuanhm43.server.repositories.RoleRepository;
+import fpt.tuanhm43.server.repositories.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

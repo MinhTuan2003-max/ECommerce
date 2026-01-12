@@ -2,7 +2,7 @@ package fpt.tuanhm43.server.controllers;
 
 import fpt.tuanhm43.server.dtos.ApiResponseDTO;
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
-import fpt.tuanhm43.server.dtos.product.ProductResponse;
+import fpt.tuanhm43.server.dtos.product.response.ProductResponseDTO;
 import fpt.tuanhm43.server.entities.Product;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -19,7 +21,7 @@ public class ProductController {
     private final ProductRepository productRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> list(
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponseDTO>>> list(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "sort", defaultValue = "id") String sort
@@ -27,7 +29,7 @@ public class ProductController {
         var pageable = PageRequest.of(page, size, Sort.by(sort));
         var pageResult = productRepository.findAll(pageable);
 
-        var dtoPage = PageResponseDTO.from(pageResult.map(p -> ProductResponse.builder()
+        var dtoPage = PageResponseDTO.from(pageResult.map(p -> ProductResponseDTO.builder()
                 .id(p.getId())
                 .name(p.getName())
                 .slug(p.getSlug())
@@ -39,9 +41,9 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<ProductResponse>> get(@PathVariable("id") Long id) {
+    public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> get(@PathVariable("id") UUID id) {
         Product p = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-        ProductResponse resp = ProductResponse.builder()
+        ProductResponseDTO resp = ProductResponseDTO.builder()
                 .id(p.getId())
                 .name(p.getName())
                 .slug(p.getSlug())

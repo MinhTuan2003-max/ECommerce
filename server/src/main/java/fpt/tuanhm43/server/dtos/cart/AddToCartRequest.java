@@ -6,12 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddToCartRequest {
     @NotNull
-    private Long productId;
+    private UUID productId;
 
     @Min(1)
     private int quantity = 1;

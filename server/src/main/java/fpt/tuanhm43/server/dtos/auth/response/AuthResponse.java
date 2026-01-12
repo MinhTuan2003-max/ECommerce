@@ -1,4 +1,4 @@
-package fpt.tuanhm43.server.dtos.auth;
+package fpt.tuanhm43.server.dtos.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package fpt.tuanhm43.server.services.impl;
 
 import fpt.tuanhm43.server.entities.User;
-import fpt.tuanhm43.server.repositories.user.UserRepository;
+import fpt.tuanhm43.server.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

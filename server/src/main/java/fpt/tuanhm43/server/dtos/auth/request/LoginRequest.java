@@ -1,19 +1,20 @@
-package fpt.tuanhm43.server.dtos.auth;
+package fpt.tuanhm43.server.dtos.auth.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class LoginRequest {
-
-    @NotBlank
+    @NotBlank(message = "Username or email is required")
     private String usernameOrEmail;
 
-    @NotBlank
+    @NotBlank(message = "Password is required")
     private String password;
 }
 
