@@ -1,7 +1,6 @@
 package fpt.tuanhm43.server.dtos.order.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import fpt.tuanhm43.server.dtos.order_item.response.OrderItemResponse;
 import fpt.tuanhm43.server.enums.OrderStatus;
 import fpt.tuanhm43.server.enums.PaymentMethod;
 import fpt.tuanhm43.server.enums.PaymentStatus;
@@ -12,19 +11,17 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 /**
- * Order Detail Response DTO
- * With items and status history
+ * Order Response DTO
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OrderDetailResponse {
+public class OrderResponse {
 
     private UUID id;
     private String orderNumber;
@@ -54,14 +51,7 @@ public class OrderDetailResponse {
     private String currency;
 
     // Items
-    private List<OrderItemResponse> items;
     private Integer totalItems;
-
-    // Status history
-    private List<OrderStatusHistoryResponse> statusHistory;
-
-    // Actions
-    private Boolean canCancel;
 
     // Timestamps
     private LocalDateTime createdAt;

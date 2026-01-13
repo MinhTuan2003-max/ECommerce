@@ -8,23 +8,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
+/**
+ * Update Product Request DTO
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UpdateProductRequest {
-    @Size(min = 3, max = 255, message = "Product name must be between 3 and 255 characters")
+
+    @Size(max = 200, message = "Product name must not exceed 200 characters")
     private String name;
 
-    private String slug;
-
-    @Size(max = 2000, message = "Product description must not exceed 2000 characters")
+    @Size(max = 5000, message = "Description must not exceed 5000 characters")
     private String description;
 
-    @DecimalMin(value = "0.01", message = "Product price must be greater than 0")
-    private BigDecimal price;
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+    private BigDecimal basePrice;
 
-    private boolean isActive;
+    private UUID categoryId;
+
+    private String imageUrl;
+
+    private Boolean isActive;
 }
-

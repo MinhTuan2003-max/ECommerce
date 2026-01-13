@@ -2,7 +2,7 @@ package fpt.tuanhm43.server.controllers;
 
 import fpt.tuanhm43.server.dtos.ApiResponseDTO;
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
-import fpt.tuanhm43.server.dtos.product.response.ProductResponseDTO;
+import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
 import fpt.tuanhm43.server.entities.Product;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class ProductController {
     private final ProductRepository productRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponseDTO>>> list(
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> list(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "sort", defaultValue = "id") String sort
@@ -29,7 +29,7 @@ public class ProductController {
         var pageable = PageRequest.of(page, size, Sort.by(sort));
         var pageResult = productRepository.findAll(pageable);
 
-        var dtoPage = PageResponseDTO.from(pageResult.map(p -> ProductResponseDTO.builder()
+        var dtoPage = PageResponseDTO.from(pageResult.map(p -> ProductResponse.builder()
                 .id(p.getId())
                 .name(p.getName())
                 .slug(p.getSlug())
@@ -41,9 +41,9 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<ProductResponseDTO>> get(@PathVariable("id") UUID id) {
+    public ResponseEntity<ApiResponseDTO<ProductResponse>> get(@PathVariable("id") UUID id) {
         Product p = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-        ProductResponseDTO resp = ProductResponseDTO.builder()
+        ProductResponse resp = ProductResponse.builder()
                 .id(p.getId())
                 .name(p.getName())
                 .slug(p.getSlug())

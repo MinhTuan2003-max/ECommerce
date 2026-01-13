@@ -1,39 +1,35 @@
 package fpt.tuanhm43.server.dtos.payment.request;
 
-import fpt.tuanhm43.server.enums.PaymentStatus;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * SePay Webhook Request DTO
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SepayWebhookRequest {
-    @JsonProperty("transaction_id")
+
+    @NotBlank(message = "Transaction ID is required")
     private String transactionId;
 
-    @JsonProperty("order_id")
-    private String orderId;
+    @NotNull(message = "Order ID is required")
+    private UUID orderId;
 
-    @JsonProperty("status")
+    @NotBlank(message = "Status is required")
     private String status;
 
-    @JsonProperty("amount")
-    private String amount;
+    private Map<String, Object> data;
 
-    @JsonProperty("currency")
-    private String currency;
-
-    @JsonProperty("timestamp")
-    private String timestamp;
-
-    @JsonProperty("reference")
-    private String reference;
-
-    @JsonProperty("message")
-    private String message;
+    @NotBlank(message = "Signature is required")
+    private String signature;
 }
-

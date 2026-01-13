@@ -1,17 +1,31 @@
 package fpt.tuanhm43.server.mappers;
 
-import fpt.tuanhm43.server.dtos.product.ProductVariantDTO;
+import fpt.tuanhm43.server.dtos.product.response.ProductVariantResponse;
 import fpt.tuanhm43.server.entities.ProductVariant;
+import fpt.tuanhm43.server.mappers.config.MapStructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
-public interface ProductVariantMapper {
-    @Mapping(source = "product.id", target = "productId")
-    @Mapping(target = "isActive", ignore = true)
-    ProductVariantDTO toDTO(ProductVariant entity);
+import java.util.List;
 
-    @Mapping(source = "productId", target = "product.id")
-    @Mapping(target = "isActive", ignore = true)
-    ProductVariant toEntity(ProductVariantDTO dto);
+@Mapper(config = MapStructConfig.class)
+interface ProductVariantMapper {
+
+    @Mapping(target = "productId", source = "product.id")
+    @Mapping(target = "productName", source = "product.name")
+    @Mapping(target = "finalPrice", expression = "java(variant.getFinalPrice())")
+    @Mapping(target = "quantityAvailable", source = "inventory.quantityAvailable")
+    @Mapping(target = "quantityReserved", source = "inventory.quantityReserved")
+    @Mapping(target = "inStock", expression = "java(variant.isInStock())")
+    @Mapping(target = "stockStatus", expression = "java(getStockStatus(variant))")
+    ProductVariantResponse toResponse(ProductVariant variant);
+
+    List<ProductVariantResponse> toResponseList(List<ProductVariant> variants);
+
+    default String getStockStatus(ProductVariant variant) {
+        if (variant.getInventory() == null) {
+            return "Out of stock";
+        }
+        return variant.getInventory().getStockStatus();
+    }
 }

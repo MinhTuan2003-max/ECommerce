@@ -1,15 +1,21 @@
 package fpt.tuanhm43.server.mappers;
 
-import fpt.tuanhm43.server.dtos.payment.PaymentTransactionDTO;
+import fpt.tuanhm43.server.dtos.payment.response.PaymentResponse;
 import fpt.tuanhm43.server.entities.PaymentTransaction;
+import fpt.tuanhm43.server.mappers.config.MapStructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
-public interface PaymentTransactionMapper {
-    @Mapping(source = "order.id", target = "orderId")
-    PaymentTransactionDTO toDTO(PaymentTransaction entity);
+import java.util.List;
 
-    @Mapping(source = "orderId", target = "order.id")
-    PaymentTransaction toEntity(PaymentTransactionDTO dto);
+/**
+ * Payment Mapper
+ */
+@Mapper(config = MapStructConfig.class)
+public interface PaymentTransactionMapper {
+
+    @Mapping(target = "orderId", source = "order.id")
+    PaymentResponse toResponse(PaymentTransaction payment);
+
+    List<PaymentResponse> toResponseList(List<PaymentTransaction> payments);
 }
