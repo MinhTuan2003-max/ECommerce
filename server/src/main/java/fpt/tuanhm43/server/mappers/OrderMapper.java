@@ -2,9 +2,9 @@ package fpt.tuanhm43.server.mappers;
 
 import fpt.tuanhm43.server.dtos.order.request.CreateOrderRequest;
 import fpt.tuanhm43.server.dtos.order.response.OrderDetailResponse;
+import fpt.tuanhm43.server.dtos.order.response.OrderItemResponse;
 import fpt.tuanhm43.server.dtos.order.response.OrderResponse;
 import fpt.tuanhm43.server.dtos.order.response.OrderStatusHistoryResponse;
-import fpt.tuanhm43.server.dtos.order_item.response.OrderItemResponse;
 import fpt.tuanhm43.server.entities.Order;
 import fpt.tuanhm43.server.entities.OrderItem;
 import fpt.tuanhm43.server.entities.OrderStatusHistory;

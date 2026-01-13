@@ -1,0 +1,6 @@
+<div class="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <p>Chào <strong><span th:text="${customerName}"></span></strong>,</p>
+    <p>Chúng mình rất tiếc phải thông báo rằng đơn hàng <strong th:text="${orderNumber}"></strong> của bạn đã bị hủy trên hệ thống.</p>
+    <p>Lý do: <span th:text="${cancelReason}">Lý do khác</span></p>
+    <p>Nếu bạn đã thanh toán qua SePay, chúng mình sẽ thực hiện hoàn tiền trong vòng 24h làm việc. Rất xin lỗi bạn vì sự bất tiện này.</p>
+</div>

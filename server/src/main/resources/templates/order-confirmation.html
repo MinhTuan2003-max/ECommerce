@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Xác nhận đơn hàng</title>
+        <style>
+            body {
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                line-height: 1.6;
+                color: #1a1a1a;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #eeeeee;
+            }
+            .header {
+                text-align: center;
+                padding: 20px 0;
+                border-bottom: 2px solid #000;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 24px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+            .content {
+                padding: 30px 0;
+            }
+            .button-container {
+                text-align: center;
+                margin: 30px 0;
+            }
+            .btn {
+                background-color: #000;
+                color: #fff !important;
+                padding: 15px 30px;
+                text-decoration: none;
+                font-weight: bold;
+                border-radius: 4px;
+                display: inline-block;
+            }
+            .order-info {
+                background-color: #f9f9f9;
+                padding: 20px;
+                border-radius: 4px;
+                margin: 20px 0;
+            }
+            .footer {
+                text-align: center;
+                font-size: 12px;
+                color: #888;
+                padding-top: 20px;
+                border-top: 1px solid #eeeeee;
+            }
+            .highlight {
+                color: #e60000;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header"><h1>HUNG HYPEBEAST</h1></div>
+            <div class="content">
+                <p>Chào <strong><span th:text="${customerName}">Khách hàng</span></strong>,</p>
+                <p>Cảm ơn bạn đã tin tưởng lựa chọn sản phẩm tại Hung Hypebeast. Chúng mình đã nhận được đơn hàng của bạn và đang chuẩn bị những món đồ "chất" nhất để gửi đi.</p>
+
+                <div class="order-info">
+                    <p>Mã đơn hàng: <strong>#<span th:text="${orderNumber}">ORD123</span></strong></p>
+                    <p>Tổng thanh toán: <strong class="highlight"><span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}">0</span> VNĐ</strong></p>
+                    <p>Địa chỉ giao hàng: <span th:text="${shippingAddress}">...</span></p>
+                </div>
+
+                <p>Bạn có thể theo dõi hành trình của đơn hàng này bằng cách nhấn vào nút bên dưới (không cần đăng nhập):</p>
+                <div class="button-container">
+                    <a th:href="${trackingUrl}" class="btn">THEO DÕI ĐƠN HÀNG</a>
+                </div>
+            </div>
+            <div class="footer">
+                <p>© 2026 Hung Hypebeast Store. All rights reserved.</p>
+                <p>Địa chỉ: Hanoi, Vietnam | Hotline: 0367-133-632</p>
+            </div>
+        </div>
+    </body>
+</html>

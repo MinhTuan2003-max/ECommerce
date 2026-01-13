@@ -1,15 +1,10 @@
 package fpt.tuanhm43.server.exceptions;
 
-public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException() {
-        super();
-    }
+import fpt.tuanhm43.server.exceptions.base.BusinessException;
+import org.springframework.http.HttpStatus;
 
+public class ResourceNotFoundException extends BusinessException {
     public ResourceNotFoundException(String message) {
-        super(message);
-    }
-
-    public ResourceNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, HttpStatus.NOT_FOUND);
     }
 }

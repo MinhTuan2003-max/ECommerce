@@ -1,7 +1,10 @@
 package fpt.tuanhm43.server.exceptions;
 
-public class BadRequestException extends RuntimeException {
-    public BadRequestException() { super(); }
-    public BadRequestException(String message) { super(message); }
-    public BadRequestException(String message, Throwable cause) { super(message, cause); }
+import fpt.tuanhm43.server.exceptions.base.BusinessException;
+import org.springframework.http.HttpStatus;
+
+public class BadRequestException extends BusinessException {
+    public BadRequestException(String message) {
+        super(message, HttpStatus.BAD_REQUEST);
+    }
 }

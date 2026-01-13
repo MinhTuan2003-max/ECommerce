@@ -19,10 +19,6 @@ import java.util.List;
 @Mapper(config = MapStructConfig.class, uses = {ProductVariantMapper.class})
 public interface ProductMapper {
 
-    // ============================================================
-    // PRODUCT MAPPINGS
-    // ============================================================
-
     /**
      * Product Entity to Response DTO
      */
@@ -51,7 +47,7 @@ public interface ProductMapper {
      * Create Request to Entity
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "category", ignore = true) // Set manually in service
+    @Mapping(target = "category", ignore = true)
     @Mapping(target = "variants", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -68,8 +64,8 @@ public interface ProductMapper {
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "slug", ignore = true) // Don't update slug
-    @Mapping(target = "category", ignore = true) // Set manually
+    @Mapping(target = "slug", ignore = true)
+    @Mapping(target = "category", ignore = true)
     @Mapping(target = "variants", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -81,14 +77,7 @@ public interface ProductMapper {
     @Mapping(target = "deletedBy", ignore = true)
     void updateEntityFromRequest(UpdateProductRequest request, @MappingTarget Product product);
 
-    /**
-     * List mapping
-     */
     List<ProductResponse> toResponseList(List<Product> products);
-
-    // ============================================================
-    // HELPER METHODS (Default implementations)
-    // ============================================================
 
     default Integer getVariantCount(Product product) {
         return product.getVariants() != null ? product.getVariants().size() : 0;
@@ -113,9 +102,3 @@ public interface ProductMapper {
                 .sum();
     }
 }
-
-// ============================================================
-
-/**
- * Product Variant Mapper
- */

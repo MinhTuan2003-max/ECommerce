@@ -61,28 +61,24 @@ public class OpenApiConfig {
 
                     apiResponses.addApiResponse("400", createApiResponse(
                             "Bad Request",
-                            400,
                             "Invalid request parameters",
                             "BAD_REQUEST"
                     ));
 
                     apiResponses.addApiResponse("401", createApiResponse(
                             "Unauthorized",
-                            401,
                             "Please login to access this resource",
                             "UNAUTHORIZED"
                     ));
 
                     apiResponses.addApiResponse("403", createApiResponse(
                             "Forbidden",
-                            403,
                             "You don't have permission to access this resource",
                             "FORBIDDEN"
                     ));
 
                     apiResponses.addApiResponse("404", createApiResponse(
                             "Not Found",
-                            404,
                             "Resource not found",
                             "RESOURCE_NOT_FOUND"
                     ));
@@ -93,7 +89,6 @@ public class OpenApiConfig {
 
                     apiResponses.addApiResponse("500", createApiResponse(
                             "Internal Server Error",
-                            500,
                             "An unexpected error occurred. Please contact support.",
                             "INTERNAL_SERVER_ERROR"
                     ));
@@ -106,7 +101,6 @@ public class OpenApiConfig {
      */
     private ApiResponse createApiResponse(
             String description,
-            int status,
             String message,
             String errorCode) {
 
