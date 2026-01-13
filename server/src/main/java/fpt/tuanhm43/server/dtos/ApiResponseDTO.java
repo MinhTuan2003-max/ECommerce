@@ -44,6 +44,18 @@ public class ApiResponseDTO<T> {
     }
 
     /**
+     * Creates a successful response with data and message.
+     */
+    public static <T> ApiResponseDTO<T> success(T data, String message) {
+        return ApiResponseDTO.<T>builder()
+                .timestamp(LocalDateTime.now())
+                .status(200)
+                .message(message)
+                .data(data)
+                .build();
+    }
+
+    /**
      * Creates an error response.
      */
     public static <T> ApiResponseDTO<T> error(int status, String message, Object errors) {

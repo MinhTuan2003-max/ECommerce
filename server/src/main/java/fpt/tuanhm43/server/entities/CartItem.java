@@ -69,16 +69,6 @@ public class CartItem extends BaseEntity {
     }
 
     /**
-     * Check if item is available in stock
-     */
-    public boolean isAvailableInStock() {
-        if (productVariant == null || productVariant.getInventory() == null) {
-            return false;
-        }
-        return productVariant.getInventory().getQuantityAvailable() >= quantity;
-    }
-
-    /**
      * Get available stock
      */
     public Integer getAvailableStock() {
@@ -100,12 +90,40 @@ public class CartItem extends BaseEntity {
     }
 
     /**
-     * Get price difference
+     * Check if item is available in stock
      */
-    public BigDecimal getPriceDifference() {
-        if (productVariant == null) {
-            return BigDecimal.ZERO;
+    public boolean isAvailableInStock() {
+        if (productVariant == null || productVariant.getInventory() == null) {
+            return false;
         }
-        return productVariant.getFinalPrice().subtract(unitPrice);
+        Integer available = productVariant.getInventory().getQuantityAvailable();
+        return available != null && available >= quantity;
+    }
+
+    /**
+     * Get stock message
+     */
+    public String getStockMessage() {
+        if (productVariant == null || productVariant.getInventory() == null) {
+            return "Out of stock";
+        }
+        Integer available = productVariant.getInventory().getQuantityAvailable();
+        if (available == null || available == 0) {
+            return "Out of stock";
+        }
+        if (available < quantity) {
+            return "Only " + available + " items available";
+        }
+        return "In stock";
+    }
+
+    /**
+     * Get current price of the variant
+     */
+    public BigDecimal getCurrentPrice() {
+        if (productVariant == null) {
+            return unitPrice;
+        }
+        return productVariant.getFinalPrice();
     }
 }

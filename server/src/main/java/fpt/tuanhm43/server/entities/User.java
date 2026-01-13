@@ -102,29 +102,4 @@ public class User extends BaseEntity {
     public boolean isAdmin() {
         return hasRole("ROLE_ADMIN");
     }
-
-    /**
-     * Check if staff
-     */
-    public boolean isStaff() {
-        return hasRole("ROLE_STAFF");
-    }
-
-    /**
-     * Check if customer
-     */
-    public boolean isCustomer() {
-        return hasRole("ROLE_CUSTOMER");
-    }
-
-    /**
-     * Get role names
-     */
-    public Set<String> getRoleNames() {
-        Set<String> roleNames = new HashSet<>();
-        for (Role role : roles) {
-            roleNames.add(role.getName());
-        }
-        return roleNames;
-    }
 }

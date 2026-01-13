@@ -43,7 +43,7 @@ public class ProductVariant extends BaseEntity {
 
     @Size(max = 50, message = "Material must not exceed 50 characters")
     @Column(length = 50)
-    private String material; // Cotton, Polyester (optional)
+    private String material;
 
     @NotNull(message = "Price adjustment is required")
     @Column(name = "price_adjustment", nullable = false, precision = 10, scale = 2)
@@ -68,40 +68,10 @@ public class ProductVariant extends BaseEntity {
     }
 
     public boolean isInStock() {
-        return inventory != null && inventory.getQuantityAvailable() > 0;
+        if (inventory == null) {
+            return false;
+        }
+        return inventory.getQuantityAvailable() != null && inventory.getQuantityAvailable() > 0;
     }
 
-    public Integer getAvailableStock() {
-        return inventory != null ? inventory.getQuantityAvailable() : 0;
-    }
-
-    public String getDisplayName() {
-        StringBuilder sb = new StringBuilder();
-        if (product != null) {
-            sb.append(product.getName());
-        }
-        if (size != null) {
-            sb.append(" - Size ").append(size);
-        }
-        if (color != null) {
-            sb.append(" - ").append(color);
-        }
-        return sb.toString();
-    }
-
-    public String getAttributesString() {
-        StringBuilder sb = new StringBuilder();
-        if (size != null) {
-            sb.append("Size: ").append(size);
-        }
-        if (color != null) {
-            if (!sb.isEmpty()) sb.append(", ");
-            sb.append("Color: ").append(color);
-        }
-        if (material != null) {
-            if (!sb.isEmpty()) sb.append(", ");
-            sb.append("Material: ").append(material);
-        }
-        return sb.toString();
-    }
 }

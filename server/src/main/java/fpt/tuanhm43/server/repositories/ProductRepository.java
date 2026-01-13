@@ -30,6 +30,12 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     boolean existsBySlug(String slug);
 
     /**
+     * Check if name exists (case-insensitive)
+     */
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Product p WHERE LOWER(p.name) = LOWER(:name)")
+    boolean existsByNameIgnoreCase(@Param("name") String name);
+
+    /**
      * Find active products
      */
     Page<Product> findByIsActiveTrue(Pageable pageable);

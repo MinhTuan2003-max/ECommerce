@@ -4,10 +4,7 @@ import fpt.tuanhm43.server.dtos.product.request.CreateProductRequest;
 import fpt.tuanhm43.server.dtos.product.request.UpdateProductRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
-import fpt.tuanhm43.server.dtos.product.response.ProductVariantResponse;
 import fpt.tuanhm43.server.entities.Product;
-import fpt.tuanhm43.server.entities.ProductVariant;
-import fpt.tuanhm43.server.mappers.config.MapStructConfig;
 import org.mapstruct.*;
 
 import java.util.List;

@@ -82,6 +82,36 @@ public class MailServiceImpl implements MailService {
         sendHtmlEmail(order.getCustomerEmail(), "Thông báo hủy đơn hàng #" + order.getOrderNumber(), "order-cancelled", props);
     }
 
+    @Override @Async
+    public void sendOrderStatusUpdate(Order order, String oldStatus, String newStatus) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(PARAM_CUSTOMER_NAME, order.getCustomerName());
+        props.put(PARAM_ORDER_NUMBER, order.getOrderNumber());
+        props.put("oldStatus", oldStatus);
+        props.put("newStatus", newStatus);
+        props.put(PARAM_TRACKING_URL, buildTrackingUrl(order));
+
+        sendHtmlEmail(order.getCustomerEmail(), "Cập nhật trạng thái đơn hàng #" + order.getOrderNumber(), "order-status-update", props);
+    }
+
+    @Override @Async
+    public void sendPaymentConfirmation(Order order) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(PARAM_CUSTOMER_NAME, order.getCustomerName());
+        props.put(PARAM_ORDER_NUMBER, order.getOrderNumber());
+        props.put(PARAM_TOTAL_AMOUNT, order.getTotalAmount());
+
+        sendHtmlEmail(order.getCustomerEmail(), "Xác nhận thanh toán #" + order.getOrderNumber(), "payment-confirmation", props);
+    }
+
+    @Override @Async
+    public void sendPasswordReset(String email, String resetToken) {
+        Map<String, Object> props = new HashMap<>();
+        props.put("resetUrl", frontendUrl + "/reset-password?token=" + resetToken);
+
+        sendHtmlEmail(email, "Yêu cầu đặt lại mật khẩu", "password-reset", props);
+    }
+
     // Helper để build URL tránh lặp logic
     private String buildTrackingUrl(Order order) {
         return frontendUrl + "/track/" + order.getTrackingToken();

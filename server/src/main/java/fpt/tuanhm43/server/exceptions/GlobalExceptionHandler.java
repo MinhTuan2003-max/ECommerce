@@ -1,8 +1,6 @@
-package fpt.tuanhm43.server.exceptions.handler;
+package fpt.tuanhm43.server.exceptions;
 
 import fpt.tuanhm43.server.dtos.ApiResponseDTO;
-import fpt.tuanhm43.server.exceptions.BadRequestException;
-import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

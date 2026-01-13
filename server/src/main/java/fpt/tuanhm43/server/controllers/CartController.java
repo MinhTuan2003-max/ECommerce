@@ -1,97 +1,122 @@
 package fpt.tuanhm43.server.controllers;
 
 import fpt.tuanhm43.server.dtos.ApiResponseDTO;
-import fpt.tuanhm43.server.dtos.cart.AddToCartRequest;
-import fpt.tuanhm43.server.entities.CartItem;
-import fpt.tuanhm43.server.entities.User;
-import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
-import fpt.tuanhm43.server.repositories.ProductRepository;
-import fpt.tuanhm43.server.repositories.CartItemRepository;
-import fpt.tuanhm43.server.repositories.UserRepository;
+import fpt.tuanhm43.server.dtos.cart.request.AddToCartRequest;
+import fpt.tuanhm43.server.dtos.cart.request.UpdateCartItemRequest;
+import fpt.tuanhm43.server.dtos.cart.response.CartResponse;
+import fpt.tuanhm43.server.services.CartService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.util.UUID;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+/**
+ * Cart Controller
+ * Handles shopping cart operations (session-based)
+ */
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
+@Slf4j
 public class CartController {
 
-    private final CartItemRepository cartItemRepository;
-    private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+    private final CartService cartService;
 
-    private UUID currentUserId() {
-        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                .filter(Authentication::isAuthenticated)
-                .map(auth -> {
-                    Object principal = auth.getPrincipal();
-
-                    String email;
-                    if (!(principal instanceof org.springframework.security.core.userdetails.UserDetails userDetails)) {
-                        if (principal instanceof String s) {
-                            email = s;
-                        } else {
-                            email = String.valueOf(principal);
-                        }
-                    } else {
-                        email = userDetails.getUsername();
-                    }
-
-                    return email;
-                })
-                .flatMap(userRepository::findByEmail)
-                .map(User::getId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unauthorized: User session is invalid or not found"));
-    }
-
+    /**
+     * Get current shopping cart
+     * Uses session ID to track cart
+     */
     @GetMapping
-    public ResponseEntity<ApiResponseDTO<List<Map<String, Object>>>> getCart() {
-        UUID userId = currentUserId();
-        List<Map<String, Object>> items = cartItemRepository.findByUserId(userId).stream()
-                .map(ci -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("id", ci.getId());
-                    m.put("productId", ci.getId());
-                    m.put("quantity", ci.getQuantity());
-                    return m;
-                })
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponseDTO.success(items));
+    public ResponseEntity<ApiResponseDTO<CartResponse>> getCart(HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Fetching cart for session: {}", sessionId);
+        CartResponse cart = cartService.getCart(sessionId);
+        return ResponseEntity.ok(ApiResponseDTO.success(cart));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponseDTO<Map<String, Object>>> addToCart(@Valid @RequestBody AddToCartRequest req) {
-        UUID userId = currentUserId();
-        productRepository.findById(req.getProductId()).orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-
-        var user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        CartItem ci = CartItem.builder()
-                .user(user)
-                .id(req.getProductId())
-                .quantity(req.getQuantity())
-                .build();
-
-        CartItem saved = cartItemRepository.save(ci);
-        Map<String, Object> resp = new HashMap<>();
-        resp.put("id", saved.getId());
-        resp.put("productId", saved.getId());
-        resp.put("quantity", saved.getQuantity());
-        return ResponseEntity.ok(ApiResponseDTO.success(resp));
+    /**
+     * Get total number of items in cart
+     */
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponseDTO<Integer>> getItemCount(HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Fetching cart item count for session: {}", sessionId);
+        int count = cartService.getCartItemCount(sessionId);
+        return ResponseEntity.ok(ApiResponseDTO.success(count));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<Void>> remove(@PathVariable("id") UUID id) {
-        UUID userId = currentUserId();
-        cartItemRepository.deleteByIdAndUserId(id, userId);
-        return ResponseEntity.ok(ApiResponseDTO.success(null));
+    /**
+     * Add item to cart
+     * If item already exists, quantity is accumulated
+     */
+    @PostMapping("/add")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ApiResponseDTO<CartResponse>> addToCart(
+            @Valid @RequestBody AddToCartRequest request,
+            HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Adding item to cart - Session: {}, VariantId: {}, Quantity: {}",
+                sessionId, request.getVariantId(), request.getQuantity());
+        CartResponse cart = cartService.addToCart(sessionId, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseDTO.created(cart, "Item added to cart successfully"));
+    }
+
+    /**
+     * Update cart item quantity
+     * Pass quantity 0 to remove item
+     */
+    @PutMapping("/items/{variantId}")
+    public ResponseEntity<ApiResponseDTO<CartResponse>> updateCartItem(
+            @PathVariable("variantId") UUID variantId,
+            @Valid @RequestBody UpdateCartItemRequest request,
+            HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Updating cart item - Session: {}, VariantId: {}, NewQuantity: {}",
+                sessionId, variantId, request.getQuantity());
+        CartResponse cart = cartService.updateCartItem(sessionId, variantId, request);
+        return ResponseEntity.ok(ApiResponseDTO.success(cart, "Cart item updated successfully"));
+    }
+
+    /**
+     * Remove item from cart
+     */
+    @DeleteMapping("/items/{variantId}")
+    public ResponseEntity<ApiResponseDTO<CartResponse>> removeFromCart(
+            @PathVariable("variantId") UUID variantId,
+            HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Removing item from cart - Session: {}, VariantId: {}", sessionId, variantId);
+        CartResponse cart = cartService.removeFromCart(sessionId, variantId);
+        return ResponseEntity.ok(ApiResponseDTO.success(cart, "Item removed from cart successfully"));
+    }
+
+    /**
+     * Clear all items from cart
+     */
+    @DeleteMapping
+    public ResponseEntity<ApiResponseDTO<Void>> clearCart(HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Clearing cart - Session: {}", sessionId);
+        cartService.clearCart(sessionId);
+        return ResponseEntity.ok(ApiResponseDTO.success(null, "Cart cleared successfully"));
+    }
+
+    /**
+     * Validate stock availability for all items in cart
+     * Returns true if all items are available
+     */
+    @GetMapping("/validate")
+    public ResponseEntity<ApiResponseDTO<Boolean>> validateStock(HttpSession session) {
+        String sessionId = session.getId();
+        log.info("Validating cart stock - Session: {}", sessionId);
+        boolean isValid = cartService.validateCartStock(sessionId);
+        return ResponseEntity.ok(ApiResponseDTO.success(isValid,
+                isValid ? "All items are in stock" : "Some items are out of stock"));
     }
 }

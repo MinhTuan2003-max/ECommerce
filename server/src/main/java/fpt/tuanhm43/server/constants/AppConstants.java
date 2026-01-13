@@ -39,6 +39,9 @@ public final class AppConstants {
     public static final String DEFAULT_SORT_BY = "id";
     public static final String DEFAULT_SORT_DIRECTION = "asc";
 
+    // --- CART CONFIGURATION ---
+    public static final int CART_SESSION_TIMEOUT_HOURS = 24;
+
     // --- ERROR CODES (Dùng cho ApiResponseDTO) ---
     public static final String ERROR_CODE_FORBIDDEN = "FORBIDDEN";
     public static final String ERROR_CODE_UNAUTHORIZED = "UNAUTHORIZED";

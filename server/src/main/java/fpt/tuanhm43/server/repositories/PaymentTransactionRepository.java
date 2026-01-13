@@ -60,7 +60,7 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
      */
     @Query("""
         SELECT pt FROM PaymentTransaction pt 
-        WHERE pt.status IN ('PENDING', 'PROCESSING') 
+        WHERE pt.status IN (fpt.tuanhm43.server.enums.PaymentStatus.PENDING, fpt.tuanhm43.server.enums.PaymentStatus.PROCESSING) 
         AND pt.createdAt < :threshold
     """)
     List<PaymentTransaction> findPendingPayments(@Param("threshold") LocalDateTime threshold);
@@ -80,7 +80,7 @@ public interface PaymentTransactionRepository extends JpaRepository<PaymentTrans
         SELECT COALESCE(SUM(pt.amount), 0) 
         FROM PaymentTransaction pt 
         WHERE pt.method = :method 
-        AND pt.status = 'PAID'
+        AND pt.status = fpt.tuanhm43.server.enums.PaymentStatus.PAID
     """)
     java.math.BigDecimal getTotalAmountByMethod(@Param("method") PaymentMethod method);
 

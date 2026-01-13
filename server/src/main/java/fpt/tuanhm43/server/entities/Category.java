@@ -55,21 +55,4 @@ public class Category extends BaseEntity {
     @Column(name = "display_order")
     private Integer displayOrder;
 
-    public boolean isRootCategory() {
-        return parent == null;
-    }
-
-    public boolean hasChildren() {
-        return children != null && !children.isEmpty();
-    }
-
-    public void addChild(Category child) {
-        children.add(child);
-        child.setParent(this);
-    }
-
-    public void removeChild(Category child) {
-        children.remove(child);
-        child.setParent(null);
-    }
 }

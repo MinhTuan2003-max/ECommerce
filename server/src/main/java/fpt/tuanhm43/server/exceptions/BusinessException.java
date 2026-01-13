@@ -1,4 +1,4 @@
-package fpt.tuanhm43.server.exceptions.base;
+package fpt.tuanhm43.server.exceptions;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

@@ -2,7 +2,6 @@ package fpt.tuanhm43.server.mappers;
 
 import fpt.tuanhm43.server.dtos.payment.response.PaymentResponse;
 import fpt.tuanhm43.server.entities.PaymentTransaction;
-import fpt.tuanhm43.server.mappers.config.MapStructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

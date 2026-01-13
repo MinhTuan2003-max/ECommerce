@@ -38,4 +38,26 @@ public class CartItemResponse {
     // Price change indicator
     private Boolean priceChanged;
     private BigDecimal currentPrice;
+
+    /**
+     * Update stock availability message
+     */
+    public void updateStockMessage() {
+        if (availableStock == null) {
+            this.inStock = false;
+            this.stockMessage = "Stock information unavailable";
+        } else if (availableStock == 0) {
+            this.inStock = false;
+            this.stockMessage = "Out of stock";
+        } else if (availableStock < quantity) {
+            this.inStock = false;
+            this.stockMessage = String.format("Only %d in stock (need %d)", availableStock, quantity);
+        } else if (availableStock < 5) {
+            this.inStock = true;
+            this.stockMessage = String.format("Low stock: %d remaining", availableStock);
+        } else {
+            this.inStock = true;
+            this.stockMessage = "In stock";
+        }
+    }
 }

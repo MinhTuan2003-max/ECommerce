@@ -51,28 +51,4 @@ public class OrderItem extends BaseEntity {
     @Column(length = 50)
     private String sku;
 
-    /**
-     * Calculate subtotal
-     */
-    public void calculateSubtotal() {
-        if (quantity != null && unitPrice != null) {
-            this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        }
-    }
-
-    /**
-     * Create from cart item
-     */
-    public static OrderItem fromCartItem(CartItem cartItem) {
-        ProductVariant variant = cartItem.getProductVariant();
-
-        return OrderItem.builder()
-                .productVariant(variant)
-                .quantity(cartItem.getQuantity())
-                .unitPrice(cartItem.getUnitPrice())
-                .subtotal(cartItem.getSubtotal())
-                .productName(variant.getProduct().getName())
-                .sku(variant.getSku())
-                .build();
-    }
 }

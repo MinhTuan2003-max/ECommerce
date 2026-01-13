@@ -1,4 +1,4 @@
-package fpt.tuanhm43.server.mappers.config;
+package fpt.tuanhm43.server.mappers;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;

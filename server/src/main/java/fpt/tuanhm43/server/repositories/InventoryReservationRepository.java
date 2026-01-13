@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -33,7 +32,7 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
      * Find active reservations by variant
      */
     @Query("""
-        SELECT r FROM InventoryReservation r WHERE r.productVariant.id = :variantId AND r.status = 'ACTIVE'
+        SELECT r FROM InventoryReservation r WHERE r.productVariant.id = :variantId AND r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE
     """)
     List<InventoryReservation> findActiveByVariantId(@Param("variantId") UUID variantId);
 
@@ -42,7 +41,7 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
      */
     @Query("""
         SELECT r FROM InventoryReservation r 
-        WHERE r.status = 'ACTIVE' 
+        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE 
         AND r.expiresAt < :now
     """)
     List<InventoryReservation> findExpiredReservations(@Param("now") LocalDateTime now);
@@ -52,7 +51,7 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
      */
     @Query("""
         SELECT r FROM InventoryReservation r 
-        WHERE r.status = 'ACTIVE' 
+        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE 
         AND r.expiresAt BETWEEN :now AND :threshold
     """)
     List<InventoryReservation> findExpiringSoon(
@@ -66,8 +65,8 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
     @Modifying
     @Query("""
         UPDATE InventoryReservation r 
-        SET r.status = 'EXPIRED' 
-        WHERE r.status = 'ACTIVE' 
+        SET r.status = fpt.tuanhm43.server.enums.ReservationStatus.EXPIRED 
+        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE 
         AND r.expiresAt < :now
     """)
     int markExpiredReservations(@Param("now") LocalDateTime now);
@@ -78,7 +77,7 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
     @Modifying
     @Query("""
         DELETE FROM InventoryReservation r 
-        WHERE r.status IN ('EXPIRED', 'CANCELLED', 'COMPLETED') 
+        WHERE r.status IN (fpt.tuanhm43.server.enums.ReservationStatus.EXPIRED, fpt.tuanhm43.server.enums.ReservationStatus.CANCELLED, fpt.tuanhm43.server.enums.ReservationStatus.COMPLETED) 
         AND r.createdAt < :threshold
     """)
     int deleteOldReservations(@Param("threshold") LocalDateTime threshold);
@@ -90,7 +89,7 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
         SELECT COALESCE(SUM(r.quantity), 0) 
         FROM InventoryReservation r 
         WHERE r.productVariant.id = :variantId 
-        AND r.status = 'ACTIVE'
+        AND r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE
     """)
     Integer getTotalReservedQuantity(@Param("variantId") UUID variantId);
 

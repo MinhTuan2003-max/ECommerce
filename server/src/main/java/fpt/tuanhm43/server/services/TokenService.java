@@ -4,56 +4,36 @@ import org.springframework.security.core.Authentication;
 
 /**
  * Token Service Interface
- *
- * Xử lý JWT token generation, validation, và authentication extraction
  */
 public interface TokenService {
 
     /**
-     * Generate JWT access token
-     *
-     * @param authentication Spring Security Authentication object
-     * @return JWT token string
+     * Generate access token
      */
     String generateAccessToken(Authentication authentication);
 
     /**
-     * Generate JWT refresh token
-     *
-     * @param authentication Spring Security Authentication object
-     * @return Refresh token string
+     * Generate refresh token
      */
     String generateRefreshToken(Authentication authentication);
 
     /**
-     * Validate JWT token
-     *
-     * @param token JWT token string
-     * @return true if valid, false otherwise
+     * Validate token
      */
     boolean validateToken(String token);
 
     /**
-     * Get Authentication object from JWT token
-     *
-     * @param token JWT token string
-     * @return Authentication object or null if invalid
+     * Get authentication from token
      */
     Authentication getAuthenticationFromToken(String token);
 
     /**
-     * Extract username from JWT token
-     *
-     * @param token JWT token string
-     * @return username
+     * Get username from token
      */
     String getUsernameFromToken(String token);
 
     /**
-     * Get token expiration time in milliseconds
-     *
-     * @param token JWT token string
-     * @return expiration timestamp
+     * Get expiration time
      */
     Long getExpirationTime(String token);
 }

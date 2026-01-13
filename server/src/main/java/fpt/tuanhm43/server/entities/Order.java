@@ -127,33 +127,11 @@ public class Order extends BaseEntity {
     }
 
     /**
-     * Remove item from order
-     */
-    public void removeItem(OrderItem item) {
-        items.remove(item);
-        item.setOrder(null);
-    }
-
-    /**
      * Add status history entry
      */
     public void addStatusHistory(OrderStatusHistory history) {
         statusHistory.add(history);
         history.setOrder(this);
-    }
-
-    /**
-     * Check if order is from guest
-     */
-    public boolean isGuestOrder() {
-        return user == null;
-    }
-
-    /**
-     * Check if order is from logged-in user
-     */
-    public boolean isUserOrder() {
-        return user != null;
     }
 
     /**
@@ -213,13 +191,6 @@ public class Order extends BaseEntity {
         return items.stream()
                 .mapToInt(OrderItem::getQuantity)
                 .sum();
-    }
-
-    /**
-     * Is payment pending
-     */
-    public boolean isPaymentPending() {
-        return paymentStatus == PaymentStatus.PENDING;
     }
 
     /**

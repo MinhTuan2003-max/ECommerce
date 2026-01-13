@@ -1,7 +1,6 @@
 package fpt.tuanhm43.server.dtos.order.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import fpt.tuanhm43.server.dtos.order_item.response.OrderItemResponse;
 import fpt.tuanhm43.server.enums.OrderStatus;
 import fpt.tuanhm43.server.enums.PaymentMethod;
 import fpt.tuanhm43.server.enums.PaymentStatus;

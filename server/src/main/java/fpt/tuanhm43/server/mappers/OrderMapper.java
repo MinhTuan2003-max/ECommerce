@@ -8,7 +8,6 @@ import fpt.tuanhm43.server.dtos.order.response.OrderStatusHistoryResponse;
 import fpt.tuanhm43.server.entities.Order;
 import fpt.tuanhm43.server.entities.OrderItem;
 import fpt.tuanhm43.server.entities.OrderStatusHistory;
-import fpt.tuanhm43.server.mappers.config.MapStructConfig;
 import org.mapstruct.*;
 
 import java.util.List;

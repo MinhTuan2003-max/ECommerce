@@ -4,7 +4,6 @@ import fpt.tuanhm43.server.dtos.cart.response.CartItemResponse;
 import fpt.tuanhm43.server.dtos.cart.response.CartResponse;
 import fpt.tuanhm43.server.entities.CartItem;
 import fpt.tuanhm43.server.entities.ShoppingCart;
-import fpt.tuanhm43.server.mappers.config.MapStructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

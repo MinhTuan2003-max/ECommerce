@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse refresh(String refreshToken) {
+    public AuthResponse refreshToken(String refreshToken) {
         if (!tokenService.validateToken(refreshToken)) {
             throw new BadRequestException("Invalid refresh token");
         }
@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BadRequestException("Username already exists");
         }
@@ -88,11 +88,51 @@ public class AuthServiceImpl implements AuthService {
 
         user.getRoles().add(userRole);
         userRepository.save(user);
+
+        // Return auth response after registration
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+
+        String accessToken = tokenService.generateAccessToken(authentication);
+        String refreshToken = tokenService.generateRefreshToken(authentication);
+        Long expiresAt = tokenService.getExpirationTime(accessToken);
+        Long refreshExpiresAt = tokenService.getExpirationTime(refreshToken);
+
+        return new AuthResponse(accessToken, refreshToken, expiresAt, refreshExpiresAt);
     }
 
     @Override
     public void logout(String refreshToken) {
         // For stateless JWT, logout can be a no-op or implement blacklist.
         // MVP: no-op
+    }
+
+    @Override
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void requestPasswordReset(String email) {
+        // Implementation would typically generate reset token and send email
+        // For MVP, just log the request
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        // Implementation would typically validate token and reset password
+        // For MVP, just log the request
     }
 }

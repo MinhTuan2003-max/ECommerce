@@ -57,31 +57,13 @@ public class Product extends BaseEntity {
     @Builder.Default
     private Boolean isActive = true;
 
-    public void addVariant(ProductVariant variant) {
-        variants.add(variant);
-        variant.setProduct(this);
-    }
-
-    public void removeVariant(ProductVariant variant) {
-        variants.remove(variant);
-        variant.setProduct(null);
-    }
-
-    public boolean hasVariants() {
-        return variants != null && !variants.isEmpty();
-    }
-
-    public ProductVariant getDefaultVariant() {
-        return variants.isEmpty() ? null : variants.get(0);
-    }
-
     public BigDecimal getMinPrice() {
         if (variants.isEmpty()) {
             return basePrice;
         }
         return variants.stream()
                 .map(v -> basePrice.add(v.getPriceAdjustment()))
-                .min(BigDecimal::compareTo)
+                .reduce(BigDecimal::min)
                 .orElse(basePrice);
     }
 
@@ -91,7 +73,7 @@ public class Product extends BaseEntity {
         }
         return variants.stream()
                 .map(v -> basePrice.add(v.getPriceAdjustment()))
-                .max(BigDecimal::compareTo)
+                .reduce(BigDecimal::max)
                 .orElse(basePrice);
     }
 }

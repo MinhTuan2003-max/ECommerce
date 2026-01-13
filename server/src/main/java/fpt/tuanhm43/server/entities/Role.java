@@ -37,37 +37,4 @@ public class Role extends BaseEntity {
     @Builder.Default
     private Set<User> users = new HashSet<>();
 
-    /**
-     * Check if this is admin role
-     */
-    public boolean isAdminRole() {
-        return "ROLE_ADMIN".equals(name);
-    }
-
-    /**
-     * Check if this is staff role
-     */
-    public boolean isStaffRole() {
-        return "ROLE_STAFF".equals(name);
-    }
-
-    /**
-     * Check if this is customer role
-     */
-    public boolean isCustomerRole() {
-        return "ROLE_CUSTOMER".equals(name);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Role)) return false;
-        Role role = (Role) o;
-        return name != null && name.equals(role.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
