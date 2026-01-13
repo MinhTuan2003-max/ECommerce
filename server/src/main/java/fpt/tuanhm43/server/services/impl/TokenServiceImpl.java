@@ -4,9 +4,11 @@ import fpt.tuanhm43.server.services.TokenService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,12 +17,14 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
 
     private static final Logger log = LoggerFactory.getLogger(TokenServiceImpl.class);
@@ -35,6 +39,7 @@ public class TokenServiceImpl implements TokenService {
     private long refreshExpiration;
 
     private static final String AUTHORITIES_KEY = "auth";
+    private final StringRedisTemplate redisTemplate;
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -118,5 +123,18 @@ public class TokenServiceImpl implements TokenService {
                 .getPayload()
                 .getExpiration()
                 .getTime();
+    }
+
+    public void blacklistToken(String token, long expirationTimeInMillis) {
+        String key = "blacklist:" + token;
+        long ttl = expirationTimeInMillis - System.currentTimeMillis();
+
+        if (ttl > 0) {
+            redisTemplate.opsForValue().set(key, "true", Duration.ofMillis(ttl));
+        }
+    }
+
+    public boolean isBlacklisted(String token) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
     }
 }

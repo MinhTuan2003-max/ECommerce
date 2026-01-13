@@ -5,6 +5,7 @@ import fpt.tuanhm43.server.dtos.auth.response.AuthResponse;
 import fpt.tuanhm43.server.dtos.auth.request.LoginRequest;
 import fpt.tuanhm43.server.dtos.auth.request.RegisterRequest;
 import fpt.tuanhm43.server.services.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,11 +69,19 @@ public class AuthController {
      * Authenticated users only
      */
     @PostMapping("/logout")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponseDTO<Void>> logout(
-            @RequestParam(value = "token", required = false) String refreshToken) {
-        log.info("User logout");
-        authService.logout(refreshToken);
+    public ResponseEntity<ApiResponseDTO<Void>> logout(HttpServletRequest request) {
+        log.info("Processing logout request");
+
+        String authHeader = request.getHeader("Authorization");
+        String token = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
+        if (token != null) {
+            authService.logout(token);
+        }
         return ResponseEntity.ok(ApiResponseDTO.success(null, "Logged out successfully"));
     }
 

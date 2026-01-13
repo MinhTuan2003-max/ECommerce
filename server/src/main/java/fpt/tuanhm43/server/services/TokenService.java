@@ -36,4 +36,14 @@ public interface TokenService {
      * Get expiration time
      */
     Long getExpirationTime(String token);
+
+    /**
+     * Blacklist token
+     */
+    void blacklistToken(String token, long expirationTimeInMillis);
+
+    /**
+     * Check if token is blacklisted
+     */
+    boolean isBlacklisted(String token);
 }

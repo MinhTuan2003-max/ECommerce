@@ -11,6 +11,7 @@ import fpt.tuanhm43.server.repositories.UserRepository;
 import fpt.tuanhm43.server.services.AuthService;
 import fpt.tuanhm43.server.services.TokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
@@ -106,9 +108,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void logout(String refreshToken) {
-        // For stateless JWT, logout can be a no-op or implement blacklist.
-        // MVP: no-op
+        log.info("Processing logout for token: {}", refreshToken.substring(0, 10) + "...");
+
+        try {
+            long expirationTime = tokenService.getExpirationTime(refreshToken);
+
+            tokenService.blacklistToken(refreshToken, expirationTime);
+
+            log.info("User logged out and token blacklisted successfully");
+        } catch (Exception e) {
+            log.warn("Logout attempt with invalid or expired token: {}", e.getMessage());
+        }
     }
 
     @Override
