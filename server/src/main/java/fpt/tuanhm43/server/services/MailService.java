@@ -40,5 +40,5 @@ public interface MailService {
     /**
      * Send password reset email
      */
-    void sendPasswordReset(String email, String resetToken);
+    void sendPasswordResetEmail(String name, String to, String token);
 }

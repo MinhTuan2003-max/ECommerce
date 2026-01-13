@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="email-layout(content)">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            /* Toàn bộ CSS chung đặt ở đây */
+            body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; margin: 0; }
+            .container { max-width: 600px; margin: 0 auto; border: 1px solid #eee; }
+            .header { text-align: center; padding: 20px; border-bottom: 2px solid #000; }
+            .footer { text-align: center; padding: 20px; font-size: 12px; color: #888; border-top: 1px solid #eee; }
+            .btn { background-color: #000; color: #fff !important; padding: 12px 25px; text-decoration: none; display: inline-block; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>HUNG HYPEBEAST</h1>
+            </div>
+
+            <div class="content" style="padding: 30px;">
+                <div th:replace="${content}"></div>
+            </div>
+
+            <div class="footer">
+                <p>© 2026 Hung Hypebeast Store. Địa chỉ: Hanoi, Vietnam</p>
+                <p>Hotline: 09xx-xxx-xxx | Email: support@hunghypebeast.vn</p>
+            </div>
+        </div>
+    </body>
+</html>

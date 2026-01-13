@@ -104,15 +104,19 @@ public class MailServiceImpl implements MailService {
         sendHtmlEmail(order.getCustomerEmail(), "Xác nhận thanh toán #" + order.getOrderNumber(), "payment-confirmation", props);
     }
 
-    @Override @Async
-    public void sendPasswordReset(String email, String resetToken) {
-        Map<String, Object> props = new HashMap<>();
-        props.put("resetUrl", frontendUrl + "/reset-password?token=" + resetToken);
+    @Override
+    @Async
+    public void sendPasswordResetEmail(String name, String to, String token) {
+        String resetUrl = frontendUrl + "/reset-password?token=" + token;
 
-        sendHtmlEmail(email, "Yêu cầu đặt lại mật khẩu", "password-reset", props);
+        Map<String, Object> props = new HashMap<>();
+        props.put(PARAM_CUSTOMER_NAME, name);
+        props.put("resetUrl", resetUrl);
+        props.put("expiryTime", "15 minutes");
+
+        sendHtmlEmail(to, "Reset Your Password - HUNG HYPEBEAST", "password-reset", props);
     }
 
-    // Helper để build URL tránh lặp logic
     private String buildTrackingUrl(Order order) {
         return frontendUrl + "/track/" + order.getTrackingToken();
     }
