@@ -8,6 +8,10 @@ import fpt.tuanhm43.server.dtos.product.request.UpdateProductRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
 import fpt.tuanhm43.server.services.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-/**
- * Product Controller
- * Handles product listing, creation, and management
- */
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
@@ -32,11 +32,8 @@ public class ProductController {
 
     private final ProductService productService;
 
-    /**
-     * Get all products with filtering and pagination
-     * Public endpoint - no authentication required
-     */
     @GetMapping
+    @Operation(summary = "Get all products", description = "Retrieve a paginated list of products with filters like price range, brand, and category.")
     public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> getAllProducts(
             @Valid ProductFilterRequest filter) {
         log.info("Fetching products with filter: {}", filter);
@@ -44,64 +41,45 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
-    /**
-     * Get product by ID with full details
-     * Public endpoint
-     */
     @GetMapping("/{id}")
+    @Operation(summary = "Get product by ID", description = "Fetch full product details including variants (size/color) and images by its UUID.")
     public ResponseEntity<ApiResponseDTO<ProductDetailResponse>> getProductById(
+            @Parameter(description = "UUID of the product", example = "550e8400-e29b-41d4-a716-446655440000")
             @PathVariable("id") UUID id) {
         log.info("Fetching product by ID: {}", id);
         ProductDetailResponse response = productService.getProductById(id);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
-    /**
-     * Get product by slug (SEO friendly URL)
-     * Public endpoint
-     */
     @GetMapping("/slug/{slug}")
+    @Operation(summary = "Get product by slug", description = "Retrieve product details using an SEO-friendly URL slug (e.g., 'nike-air-jordan-1').")
     public ResponseEntity<ApiResponseDTO<ProductDetailResponse>> getProductBySlug(
+            @Parameter(description = "SEO friendly slug", example = "nike-air-jordan-1-retro")
             @PathVariable("slug") String slug) {
         log.info("Fetching product by slug: {}", slug);
         ProductDetailResponse response = productService.getProductBySlug(slug);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
-    /**
-     * Search products by keyword
-     * Public endpoint
-     */
     @GetMapping("/search")
+    @Operation(summary = "Search products", description = "Search products by keyword in name or description with pagination support.")
     public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> searchProducts(
-            @RequestParam("keyword") String keyword,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
+            @Parameter(description = "Keyword to search", example = "Jordan") @RequestParam("keyword") String keyword,
+            @Parameter(description = "Page number (0-based)") @RequestParam(name = "page", defaultValue = "0") int page,
+            @Parameter(description = "Items per page") @RequestParam(name = "size", defaultValue = "10") int size) {
         log.info("Searching products with keyword: {}", keyword);
         PageResponseDTO<ProductResponse> response = productService.searchProducts(keyword, page, size);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
-    /**
-     * Get products by category
-     * Public endpoint
-     */
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> getProductsByCategory(
-            @PathVariable("categoryId") UUID categoryId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        log.info("Fetching products by category: {}", categoryId);
-        PageResponseDTO<ProductResponse> response = productService.getProductsByCategory(categoryId, page, size);
-        return ResponseEntity.ok(ApiResponseDTO.success(response));
-    }
-
-    /**
-     * Create new product
-     * Admin only
-     */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Create new product",
+            description = "Registers a new product. Required role: ADMIN.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponse(responseCode = "201", description = "Product created successfully")
+    @ApiResponse(responseCode = "403", description = "Forbidden - Admin role required")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<ProductResponse>> createProduct(
             @Valid @RequestBody CreateProductRequest request) {
@@ -111,11 +89,12 @@ public class ProductController {
                 .body(ApiResponseDTO.created(response, "Product created successfully"));
     }
 
-    /**
-     * Update product
-     * Admin only
-     */
     @PutMapping("/{id}")
+    @Operation(
+            summary = "Update product",
+            description = "Update existing product details. Required role: ADMIN.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<ProductResponse>> updateProduct(
             @PathVariable("id") UUID id,
@@ -125,11 +104,12 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponseDTO.success(response, "Product updated successfully"));
     }
 
-    /**
-     * Delete product (soft delete)
-     * Admin only
-     */
     @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Delete product",
+            description = "Soft delete a product from the catalog. Required role: ADMIN.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(
             @PathVariable("id") UUID id) {
