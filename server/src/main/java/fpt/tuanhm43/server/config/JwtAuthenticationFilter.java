@@ -2,6 +2,8 @@ package fpt.tuanhm43.server.config;
 
 import fpt.tuanhm43.server.constants.AppConstants;
 import fpt.tuanhm43.server.services.TokenService;
+import fpt.tuanhm43.server.services.impl.TokenServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,25 +31,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            // Extract JWT token from request
             String jwtToken = extractTokenFromRequest(request);
 
-            // If token exists, validate and set authentication
             if (StringUtils.hasText(jwtToken)) {
+                if (tokenService instanceof TokenServiceImpl tokenServiceImpl && tokenServiceImpl.isBlacklisted(jwtToken)) {
+                        log.warn("Blacklisted token attempted for: {} {}",
+                                request.getMethod(), request.getRequestURI());
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+
+
+                if (!tokenService.validateToken(jwtToken)) {
+                    log.warn("Invalid token for: {} {}",
+                            request.getMethod(), request.getRequestURI());
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 Authentication authentication = tokenService.getAuthenticationFromToken(jwtToken);
 
                 if (authentication != null) {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.debug("Set authentication for user: {} with authorities: {}",
+                    log.debug("User authenticated: {} with roles: {} for: {} {}",
                             authentication.getName(),
-                            authentication.getAuthorities());
+                            authentication.getAuthorities(),
+                            request.getMethod(),
+                            request.getRequestURI());
                 } else {
-                    log.debug("Invalid token, authentication not set");
+                    log.warn("Failed to extract authentication from token for: {} {}",
+                            request.getMethod(), request.getRequestURI());
                 }
             }
+        } catch (ExpiredJwtException e) {
+            log.warn("Expired JWT token for: {} {} - {}",
+                    request.getMethod(), request.getRequestURI(), e.getMessage());
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e.getMessage());
-            SecurityContextHolder.clearContext();
+            log.error("Authentication error for: {} {} - {}",
+                    request.getMethod(), request.getRequestURI(), e.getMessage());
         }
 
         filterChain.doFilter(request, response);
@@ -56,9 +77,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(AppConstants.JWT_HEADER_NAME);
 
-        if (StringUtils.hasText(bearerToken) &&
-                bearerToken.startsWith(AppConstants.JWT_TOKEN_PREFIX)) {
-            return bearerToken.substring(AppConstants.JWT_TOKEN_PREFIX.length()).trim();
+        if (StringUtils.hasText(bearerToken) && bearerToken.toLowerCase().startsWith("bearer ")) {
+            return bearerToken.substring(7).trim();
         }
 
         return null;
@@ -67,17 +87,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
+        String method = request.getMethod();
 
         return path.startsWith("/api/v1/auth/") ||
-                path.startsWith("/api/v1/products") ||
-                path.startsWith("/api/v1/categories") ||
-                path.startsWith("/api/v1/cart") ||
-                path.startsWith("/api/v1/orders/track/") ||
-                path.startsWith("/api/v1/payments/") && path.contains("/webhook") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/v3/api-docs") ||
                 path.startsWith("/api-docs") ||
                 path.equals("/actuator/health") ||
-                path.equals("/actuator/info");
+                path.equals("/actuator/info") ||
+                (path.startsWith("/api/v1/payments/") && path.contains("/webhook")) ||
+                ("GET".equalsIgnoreCase(method) &&
+                        (path.startsWith("/api/v1/products") || path.startsWith("/api/v1/categories"))) ||
+                path.startsWith("/api/v1/cart") ||
+                path.startsWith("/api/v1/orders/track/") ||
+                (path.equals("/api/v1/orders") && "POST".equalsIgnoreCase(method));
     }
 }

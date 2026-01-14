@@ -93,14 +93,19 @@ public class TokenServiceImpl implements TokenService {
                 .parseSignedClaims(token)
                 .getPayload();
 
+        Object authoritiesClaim = claims.get(AUTHORITIES_KEY);
+        if (authoritiesClaim == null) {
+            log.warn("Token has no authorities claim");
+            return null;
+        }
+
         List<SimpleGrantedAuthority> authorities =
-                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                Arrays.stream(authoritiesClaim.toString().split(","))
                         .filter(auth -> !auth.trim().isEmpty())
                         .map(SimpleGrantedAuthority::new)
                         .toList();
 
         User principal = new User(claims.getSubject(), "", authorities);
-
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 

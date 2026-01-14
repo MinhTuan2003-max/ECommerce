@@ -8,6 +8,7 @@ import fpt.tuanhm43.server.dtos.product.request.UpdateProductRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
 import fpt.tuanhm43.server.services.ProductService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Product Management", description = "Endpoints for managing products, variants, and inventory in the Hypebeast catalog")
 public class ProductController {
 
     private final ProductService productService;

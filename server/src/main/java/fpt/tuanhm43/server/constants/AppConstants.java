@@ -8,43 +8,18 @@ public final class AppConstants {
 
     // --- SECURITY CONSTANTS ---
     public static final String JWT_HEADER_NAME = "Authorization";
-    public static final String JWT_TOKEN_PREFIX = "Bearer ";
-    public static final long JWT_EXPIRATION = 86400000;
 
-    // --- API PATHS ---
-    public static final String API_V1_PREFIX = "/api/v1";
-    public static final String AUTH_WHITELIST_PATTERN = API_V1_PREFIX + "/auth/**";
-
-    // --- ORDER STATUS (Dựa trên thiết kế DB của bạn) ---
-    public static final String ORDER_STATUS_PENDING = "PENDING";
-    public static final String ORDER_STATUS_PAID = "PAID";
-    public static final String ORDER_STATUS_SHIPPING = "SHIPPING";
-    public static final String ORDER_STATUS_DELIVERED = "DELIVERED";
-    public static final String ORDER_STATUS_CANCELLED = "CANCELLED";
-
-    // Roles
+    // --- ROLES ---
     public static final String ROLE_ADMIN = "ADMIN";
     public static final String ROLE_STAFF = "STAFF";
-
-    // Error Codes
-    public static final String ERR_UNAUTHORIZED = "UNAUTHORIZED";
-
-    // --- PAYMENT METHODS ---
-    public static final String PAYMENT_METHOD_COD = "COD";
-    public static final String PAYMENT_METHOD_SEPAY = "SEPAY";
-
-    // --- PAGINATION DEFAULTS (Dành cho Catalog API) ---
-    public static final String DEFAULT_PAGE_NUMBER = "0";
-    public static final String DEFAULT_PAGE_SIZE = "10";
-    public static final String DEFAULT_SORT_BY = "id";
-    public static final String DEFAULT_SORT_DIRECTION = "asc";
 
     // --- CART CONFIGURATION ---
     public static final int CART_SESSION_TIMEOUT_HOURS = 24;
 
-    // --- ERROR CODES (Dùng cho ApiResponseDTO) ---
-    public static final String ERROR_CODE_FORBIDDEN = "FORBIDDEN";
-    public static final String ERROR_CODE_UNAUTHORIZED = "UNAUTHORIZED";
-    public static final String ERROR_CODE_VALIDATION = "VALIDATION_ERROR";
-    public static final String ERROR_CODE_INTERNAL_SERVER = "INTERNAL_SERVER_ERROR";
+    // --- API ---
+    public static final String API_PRODUCT = "/api/v1/products/**";
+    public static final String API_CATEGORY = "/api/v1/categories/**";
+    public static final String API_ADMIN = "/api/v1/admin/**";
+    public static final String API_ADMIN_ORDER = "/api/v1/admin/orders/**";
+    public static final String API_ADMIN_INVENTORY = "/api/v1/admin/inventory/**";
 }

@@ -1,10 +1,12 @@
 package fpt.tuanhm43.server.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.media.Content;
@@ -24,7 +26,7 @@ import java.time.LocalDateTime;
                 version = "1.0.0",
                 description = """
                         RESTful API for E-Commerce Application
-                        """,
+                       """,
                 contact = @Contact(
                         name = "TuanHM43",
                         email = "tuanhm43@fpt.com"
@@ -39,17 +41,20 @@ import java.time.LocalDateTime;
                         url = "http://localhost:8080",
                         description = "Local Development Server"
                 )
+        },
+        security = {
+                @SecurityRequirement(name = "bearerAuth")
         }
 )
 @SecurityScheme(
         name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",
-        bearerFormat = "JWT",
         description = """
-                Enter JWT token for admin/staff authentication.
-                Note: Guest endpoints (products, cart, checkout) don't require authentication.
-                """
+                JWT Authentication
+                """,
+        scheme = "bearer",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        in = SecuritySchemeIn.HEADER
 )
 public class OpenApiConfig {
 
@@ -67,13 +72,13 @@ public class OpenApiConfig {
 
                     apiResponses.addApiResponse("401", createApiResponse(
                             "Unauthorized",
-                            "Please login to access this resource",
+                            "Authentication required. Please login to get a JWT token and click 'Authorize' button.",
                             "UNAUTHORIZED"
                     ));
 
                     apiResponses.addApiResponse("403", createApiResponse(
                             "Forbidden",
-                            "You don't have permission to access this resource",
+                            "You don't have permission to access this resource. Admin or Staff role required.",
                             "FORBIDDEN"
                     ));
 

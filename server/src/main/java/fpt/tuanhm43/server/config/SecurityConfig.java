@@ -3,6 +3,7 @@ package fpt.tuanhm43.server.config;
 import fpt.tuanhm43.server.constants.AppConstants;
 import fpt.tuanhm43.server.services.TokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final TokenService tokenService;
@@ -43,8 +45,6 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/**",
-            "/api/v1/products/**",
-            "/api/v1/categories/**",
             "/api/v1/cart/**",
             "/api/v1/orders",
             "/api/v1/orders/track/**",
@@ -56,15 +56,6 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/actuator/health",
             "/actuator/info"
-    };
-
-    private static final String[] ADMIN_ENDPOINTS = {
-            "/api/v1/admin/**"
-    };
-
-    private static final String[] STAFF_ENDPOINTS = {
-            "/api/v1/admin/orders/**",
-            "/api/v1/admin/inventory/**"
     };
 
     @Bean
@@ -79,7 +70,6 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager() {
@@ -126,14 +116,20 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(ADMIN_ENDPOINTS).hasRole(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(STAFF_ENDPOINTS).hasAnyRole(AppConstants.ROLE_ADMIN, AppConstants.ROLE_STAFF)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.API_PRODUCT).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.API_CATEGORY).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(AppConstants.API_ADMIN).hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(AppConstants.API_ADMIN_ORDER).hasAnyRole(AppConstants.ROLE_ADMIN, AppConstants.ROLE_STAFF)
+                        .requestMatchers(AppConstants.API_ADMIN_INVENTORY).hasAnyRole(AppConstants.ROLE_ADMIN, AppConstants.ROLE_STAFF)
                         .requestMatchers("/actuator/**").hasRole(AppConstants.ROLE_ADMIN)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
-                        .accessDeniedHandler(accessDeniedHandler)
                         .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
