@@ -14,7 +14,7 @@ public interface CartService {
      * @param sessionId Session identifier
      * @return CartResponse
      */
-    CartResponse getCart(String sessionId);
+    CartResponse getBySessionId(String sessionId);
 
     /**
      * Add item to cart
@@ -33,7 +33,7 @@ public interface CartService {
      * @param request Update request
      * @return Updated cart
      */
-    CartResponse updateCartItem(String sessionId, UUID variantId, UpdateCartItemRequest request);
+    CartResponse update(String sessionId, UUID variantId, UpdateCartItemRequest request);
 
     /**
      * Remove item from cart
@@ -42,14 +42,14 @@ public interface CartService {
      * @param variantId Product variant ID
      * @return Updated cart
      */
-    CartResponse removeFromCart(String sessionId, UUID variantId);
+    CartResponse remove(String sessionId, UUID variantId);
 
     /**
      * Clear all items from cart
      *
      * @param sessionId Session identifier
      */
-    void clearCart(String sessionId);
+    void clear(String sessionId);
 
     /**
      * Validate stock availability for all items in cart

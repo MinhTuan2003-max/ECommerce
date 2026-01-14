@@ -34,7 +34,7 @@ public class CartController {
     public ResponseEntity<ApiResponseDTO<CartResponse>> getCart(@Parameter(hidden = true) HttpSession session) {
         String sessionId = session.getId();
         log.info("Fetching cart for session: {}", sessionId);
-        CartResponse cart = cartService.getCart(sessionId);
+        CartResponse cart = cartService.getBySessionId(sessionId);
         return ResponseEntity.ok(ApiResponseDTO.success(cart));
     }
 
@@ -70,7 +70,7 @@ public class CartController {
         String sessionId = session.getId();
         log.info("Updating cart item - Session: {}, VariantId: {}, NewQuantity: {}",
                 sessionId, variantId, request.getQuantity());
-        CartResponse cart = cartService.updateCartItem(sessionId, variantId, request);
+        CartResponse cart = cartService.update(sessionId, variantId, request);
         return ResponseEntity.ok(ApiResponseDTO.success(cart, "Cart item updated successfully"));
     }
 
@@ -81,7 +81,7 @@ public class CartController {
             @Parameter(hidden = true) HttpSession session) {
         String sessionId = session.getId();
         log.info("Removing item from cart - Session: {}, VariantId: {}", sessionId, variantId);
-        CartResponse cart = cartService.removeFromCart(sessionId, variantId);
+        CartResponse cart = cartService.remove(sessionId, variantId);
         return ResponseEntity.ok(ApiResponseDTO.success(cart, "Item removed from cart successfully"));
     }
 
@@ -90,7 +90,7 @@ public class CartController {
     public ResponseEntity<ApiResponseDTO<Void>> clearCart(@Parameter(hidden = true) HttpSession session) {
         String sessionId = session.getId();
         log.info("Clearing cart - Session: {}", sessionId);
-        cartService.clearCart(sessionId);
+        cartService.clear(sessionId);
         return ResponseEntity.ok(ApiResponseDTO.success(null, "Cart cleared successfully"));
     }
 

@@ -17,40 +17,40 @@ public interface ProductService {
     /**
      * Get all products with pagination
      */
-    PageResponseDTO<ProductResponse> getAllProducts(ProductFilterRequest filter);
+    PageResponseDTO<ProductResponse> getAllWithFilter(ProductFilterRequest filter);
 
     /**
      * Get product by ID
      */
-    ProductDetailResponse getProductById(UUID id);
+    ProductDetailResponse getById(UUID id);
 
     /**
      * Get product by slug
      */
-    ProductDetailResponse getProductBySlug(String slug);
+    ProductDetailResponse getBySlug(String slug);
 
     /**
      * Create product (Admin)
      */
-    ProductResponse createProduct(CreateProductRequest request);
+    ProductResponse create(CreateProductRequest request);
 
     /**
      * Update product (Admin)
      */
-    ProductResponse updateProduct(UUID id, UpdateProductRequest request);
+    ProductResponse update(UUID id, UpdateProductRequest request);
 
     /**
      * Delete product (Admin - soft delete)
      */
-    void deleteProduct(UUID id);
+    void delete(UUID id);
 
     /**
      * Search products
      */
-    PageResponseDTO<ProductResponse> searchProducts(String keyword, int page, int size);
+    PageResponseDTO<ProductResponse> searchByKeyword(String keyword, int page, int size);
 
     /**
      * Get products by category
      */
-    PageResponseDTO<ProductResponse> getProductsByCategory(UUID categoryId, int page, int size);
+    PageResponseDTO<ProductResponse> getByCategory(UUID categoryId, int page, int size);
 }

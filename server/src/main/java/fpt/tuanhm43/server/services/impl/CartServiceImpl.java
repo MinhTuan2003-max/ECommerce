@@ -39,7 +39,7 @@ public class CartServiceImpl implements CartService {
     private final InventoryRepository inventoryRepository;
 
     @Override
-    public CartResponse getCart(String sessionId) {
+    public CartResponse getBySessionId(String sessionId) {
         log.debug("Getting cart for session: {}", sessionId);
 
         ShoppingCart cart = cartRepository.findBySessionIdWithItems(sessionId)
@@ -117,8 +117,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse updateCartItem(String sessionId, UUID variantId,
-                                       UpdateCartItemRequest request) {
+    public CartResponse update(String sessionId, UUID variantId,
+                               UpdateCartItemRequest request) {
         log.info("Updating cart item - Session: {}, VariantId: {}, NewQuantity: {}",
                 sessionId, variantId, request.getQuantity());
 
@@ -136,7 +136,7 @@ public class CartServiceImpl implements CartService {
 
         // If quantity is 0, remove item
         if (request.getQuantity() == 0) {
-            return removeFromCart(sessionId, variantId);
+            return remove(sessionId, variantId);
         }
 
         // Validate stock
@@ -160,7 +160,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse removeFromCart(String sessionId, UUID variantId) {
+    public CartResponse remove(String sessionId, UUID variantId) {
         log.info("Removing item from cart - Session: {}, VariantId: {}",
                 sessionId, variantId);
 
@@ -187,7 +187,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void clearCart(String sessionId) {
+    public void clear(String sessionId) {
         log.info("Clearing cart - Session: {}", sessionId);
 
         ShoppingCart cart = cartRepository.findBySessionId(sessionId)

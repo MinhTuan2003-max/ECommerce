@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDTO<ProductResponse> getAllProducts(ProductFilterRequest filter) {
+    public PageResponseDTO<ProductResponse> getAllWithFilter(ProductFilterRequest filter) {
         log.info("Getting all products with filter - Category: {}, MinPrice: {}, MaxPrice: {}, Page: {}, Size: {}",
                 filter.getCategoryId(), filter.getMinPrice(), filter.getMaxPrice(),
                 filter.getPage(), filter.getSize());
@@ -72,13 +72,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public ProductDetailResponse getProductById(UUID id) {
+    public ProductDetailResponse getById(UUID id) {
         log.info("Getting product by id: {}", id);
 
         Product product = productRepository.findByIdWithVariants(id)
                 .orElseThrow(() -> new ResourceNotFoundException(PRODUCT, "id", id));
 
-        if (!product.getIsActive()) {
+        if (Boolean.FALSE.equals(product.getIsActive())) {
             throw new ResourceNotFoundException(PRODUCT, "id", id);
         }
 
@@ -87,13 +87,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public ProductDetailResponse getProductBySlug(String slug) {
+    public ProductDetailResponse getBySlug(String slug) {
         log.info("Getting product by slug: {}", slug);
 
         Product product = productRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException(PRODUCT, "slug", slug));
 
-        if (!product.getIsActive()) {
+        if (Boolean.FALSE.equals(product.getIsActive())) {
             throw new ResourceNotFoundException(PRODUCT, "slug", slug);
         }
 
@@ -102,7 +102,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductResponse createProduct(CreateProductRequest request) {
+    public ProductResponse create(CreateProductRequest request) {
         log.info("Creating new product: {}", request.getName());
 
         // Check if product name already exists
@@ -138,7 +138,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductResponse updateProduct(UUID id, UpdateProductRequest request) {
+    public ProductResponse update(UUID id, UpdateProductRequest request) {
         log.info("Updating product: {}", id);
 
         Product product = productRepository.findById(id)
@@ -182,7 +182,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void deleteProduct(UUID id) {
+    public void delete(UUID id) {
         log.info("Deleting product: {}", id);
 
         Product product = productRepository.findById(id)
@@ -196,7 +196,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDTO<ProductResponse> searchProducts(String keyword, int page, int size) {
+    public PageResponseDTO<ProductResponse> searchByKeyword(String keyword, int page, int size) {
         log.info("Searching products with keyword: {}", keyword);
 
         int pageNumber = Math.max(page, 0);
@@ -212,7 +212,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDTO<ProductResponse> getProductsByCategory(UUID categoryId, int page, int size) {
+    public PageResponseDTO<ProductResponse> getByCategory(UUID categoryId, int page, int size) {
         log.info("Getting products by category: {}", categoryId);
 
         // Verify category exists

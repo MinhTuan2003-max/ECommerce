@@ -37,7 +37,7 @@ public class ProductController {
     public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> getAllProducts(
             @Valid ProductFilterRequest filter) {
         log.info("Fetching products with filter: {}", filter);
-        PageResponseDTO<ProductResponse> response = productService.getAllProducts(filter);
+        PageResponseDTO<ProductResponse> response = productService.getAllWithFilter(filter);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
@@ -47,7 +47,7 @@ public class ProductController {
             @Parameter(description = "UUID of the product", example = "550e8400-e29b-41d4-a716-446655440000")
             @PathVariable("id") UUID id) {
         log.info("Fetching product by ID: {}", id);
-        ProductDetailResponse response = productService.getProductById(id);
+        ProductDetailResponse response = productService.getById(id);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
@@ -57,7 +57,7 @@ public class ProductController {
             @Parameter(description = "SEO friendly slug", example = "nike-air-jordan-1-retro")
             @PathVariable("slug") String slug) {
         log.info("Fetching product by slug: {}", slug);
-        ProductDetailResponse response = productService.getProductBySlug(slug);
+        ProductDetailResponse response = productService.getBySlug(slug);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
@@ -68,7 +68,7 @@ public class ProductController {
             @Parameter(description = "Page number (0-based)") @RequestParam(name = "page", defaultValue = "0") int page,
             @Parameter(description = "Items per page") @RequestParam(name = "size", defaultValue = "10") int size) {
         log.info("Searching products with keyword: {}", keyword);
-        PageResponseDTO<ProductResponse> response = productService.searchProducts(keyword, page, size);
+        PageResponseDTO<ProductResponse> response = productService.searchByKeyword(keyword, page, size);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
@@ -84,7 +84,7 @@ public class ProductController {
     public ResponseEntity<ApiResponseDTO<ProductResponse>> createProduct(
             @Valid @RequestBody CreateProductRequest request) {
         log.info("Creating product: {}", request);
-        ProductResponse response = productService.createProduct(request);
+        ProductResponse response = productService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseDTO.created(response, "Product created successfully"));
     }
@@ -100,7 +100,7 @@ public class ProductController {
             @PathVariable("id") UUID id,
             @Valid @RequestBody UpdateProductRequest request) {
         log.info("Updating product: {}", id);
-        ProductResponse response = productService.updateProduct(id, request);
+        ProductResponse response = productService.update(id, request);
         return ResponseEntity.ok(ApiResponseDTO.success(response, "Product updated successfully"));
     }
 
@@ -114,7 +114,8 @@ public class ProductController {
     public ResponseEntity<ApiResponseDTO<Void>> deleteProduct(
             @PathVariable("id") UUID id) {
         log.info("Deleting product: {}", id);
-        productService.deleteProduct(id);
+        productService.delete(id);
         return ResponseEntity.ok(ApiResponseDTO.success(null, "Product deleted successfully"));
     }
+
 }
