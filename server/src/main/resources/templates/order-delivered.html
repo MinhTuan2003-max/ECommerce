@@ -1,10 +1,42 @@
-<div class="content">
-    <p>Chào <strong><span th:text="${customerName}"></span></strong>,</p>
-    <p>Hung Hypebeast vui mừng thông báo đơn hàng <strong th:text="${orderNumber}"></strong> đã được giao thành công.</p>
-    <p>Hy vọng bạn sẽ hài lòng với món đồ này. Đừng quên check-in và tag chúng mình nhé!</p>
-    <p>Nếu có bất kỳ vấn đề gì về sản phẩm, hãy nhấn vào link bên dưới để yêu cầu hỗ trợ:</p>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base-email :: email-layout(~{::content})">
 
-    <div class="button-container">
-        <a th:href="${trackingUrl}" class="btn">XEM CHI TIẾT ĐƠN HÀNG</a>
+    <div class="content">
+
+        <p>
+            Chào <strong th:text="${customerName}">Khách hàng</strong>,
+        </p>
+
+        <p>
+            <strong>HUNG HYPEBEAST</strong> vui mừng thông báo đơn hàng
+            <strong th:text="${orderNumber}">#ORDER123</strong>
+            của bạn đã được <strong>giao thành công</strong>.
+        </p>
+
+        <p>
+            Hy vọng bạn sẽ thật sự hài lòng với sản phẩm.
+            Đừng quên check-in và tag chúng mình để khoe outfit nhé!
+        </p>
+
+        <p>
+            Nếu có bất kỳ vấn đề nào liên quan đến sản phẩm, bạn có thể xem chi tiết đơn hàng hoặc gửi yêu cầu hỗ trợ tại đây:
+        </p>
+
+        <p style="margin: 30px 0; text-align: center;">
+            <a th:href="${trackingUrl}" class="btn">
+                XEM CHI TIẾT ĐƠN HÀNG
+            </a>
+        </p>
+
+        <p>
+            Cảm ơn bạn đã tin tưởng và ủng hộ HUNG HYPEBEAST!
+        </p>
+
+        <p style="margin-top: 40px;">
+            Trân trọng,<br>
+            <strong>HUNG HYPEBEAST Team</strong>
+        </p>
+
     </div>
-</div>
+</html>

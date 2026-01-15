@@ -1,9 +1,41 @@
-<div class="content">
-    <p>Chào <strong><span th:text="${customerName}"></span></strong>,</p>
-    <p>Đơn hàng <strong th:text="${orderNumber}"></strong> của bạn đã được đóng gói và bàn giao cho đơn vị vận chuyển.</p>
-    <p>Dự kiến bạn sẽ nhận được hàng trong vòng 2-3 ngày tới. Hãy chú ý điện thoại từ shipper nhé!</p>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base-email :: email-layout(~{::content})">
 
-    <div class="button-container">
-        <a th:href="${trackingUrl}" class="btn">XEM VỊ TRÍ ĐƠN HÀNG</a>
+    <div class="content">
+
+        <p>
+            Chào <strong th:text="${customerName}">Khách hàng</strong>,
+        </p>
+
+        <p>
+            Đơn hàng
+            <strong th:text="${orderNumber}">#ORDER123</strong>
+            của bạn đã được <strong>đóng gói</strong> và
+            <strong>bàn giao cho đơn vị vận chuyển</strong>.
+        </p>
+
+        <p>
+            Dự kiến bạn sẽ nhận được hàng trong vòng
+            <strong>2 – 3 ngày tới</strong>.
+            Hãy chú ý điện thoại để không bỏ lỡ cuộc gọi từ shipper nhé
+        </p>
+
+        <p style="margin: 30px 0; text-align: center;">
+            <a th:href="${trackingUrl}" class="btn">
+                XEM VỊ TRÍ ĐƠN HÀNG
+            </a>
+        </p>
+
+        <p>
+            Cảm ơn bạn đã mua sắm tại <strong>HUNG HYPEBEAST</strong>.
+            Chúng mình rất mong sớm được thấy bạn check-in với outfit mới!
+        </p>
+
+        <p style="margin-top: 40px;">
+            Trân trọng,<br>
+            <strong>HUNG HYPEBEAST Team</strong>
+        </p>
+
     </div>
-</div>
+</html>

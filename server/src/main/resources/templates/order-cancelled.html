@@ -1,6 +1,42 @@
-<div class="content" xmlns:th="http://www.w3.org/1999/xhtml">
-    <p>Chào <strong><span th:text="${customerName}"></span></strong>,</p>
-    <p>Chúng mình rất tiếc phải thông báo rằng đơn hàng <strong th:text="${orderNumber}"></strong> của bạn đã bị hủy trên hệ thống.</p>
-    <p>Lý do: <span th:text="${cancelReason}">Lý do khác</span></p>
-    <p>Nếu bạn đã thanh toán qua SePay, chúng mình sẽ thực hiện hoàn tiền trong vòng 24h làm việc. Rất xin lỗi bạn vì sự bất tiện này.</p>
-</div>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="base-email :: email-layout(~{::content})">
+
+    <div class="content">
+
+        <p>Chào <strong th:text="${customerName}">Khách hàng</strong>,</p>
+
+        <p>
+            Chúng mình rất tiếc phải thông báo rằng đơn hàng
+            <strong th:text="${orderNumber}">#ORDER123</strong>
+            của bạn đã bị <strong>hủy</strong> trên hệ thống.
+        </p>
+
+        <div class="cancel-box">
+            <p><strong>Lý do hủy:</strong></p>
+            <p th:text="${cancelReason}">Lý do khác</p>
+        </div>
+
+        <p>
+            Nếu bạn đã thanh toán qua <strong>SePay</strong>, chúng mình sẽ hoàn tiền
+            trong vòng <strong>24 giờ làm việc</strong>.
+        </p>
+
+        <p>
+            Chúng mình rất xin lỗi vì sự bất tiện này. Nếu bạn cần hỗ trợ thêm,
+            đừng ngần ngại liên hệ với team HUNG HYPEBEAST.
+        </p>
+
+        <p style="margin-top: 30px;">
+            <a class="btn" href="https://hunghypebeast.vn/support">
+                Liên hệ hỗ trợ
+            </a>
+        </p>
+
+        <p style="margin-top: 40px;">
+            Trân trọng,<br>
+            <strong>HUNG HYPEBEAST Team</strong>
+        </p>
+
+    </div>
+</html>
