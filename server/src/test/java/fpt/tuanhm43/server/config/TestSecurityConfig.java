@@ -1,4 +1,4 @@
-package fpt.tuanhm43.server;
+package fpt.tuanhm43.server.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

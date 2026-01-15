@@ -28,6 +28,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.springframework.http.HttpMethod.*;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -42,21 +44,6 @@ public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
     private String allowedOrigins;
-
-    private static final String[] PUBLIC_ENDPOINTS = {
-            "/api/v1/auth/**",
-            "/api/v1/cart/**",
-            "/api/v1/orders/**",
-            "/api/v1/orders/track/**",
-            "/api/v1/payments/sepay/webhook",
-            "/api/v1/payments/*/webhook",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/api-docs/**",
-            "/v3/api-docs/**",
-            "/actuator/health",
-            "/actuator/info"
-    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -115,14 +102,14 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.API_PRODUCT).permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.API_CATEGORY).permitAll()
+                        .requestMatchers(AppConstants.PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(GET, AppConstants.API_PRODUCT).permitAll()
+                        .requestMatchers(GET, AppConstants.API_CATEGORY).permitAll()
                         .requestMatchers("/api/v1/payments/webhook/**").permitAll()
                         .requestMatchers("/api/v1/orders/track/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(PUT, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
+                        .requestMatchers(DELETE, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
                         .requestMatchers(AppConstants.API_ADMIN).hasRole(AppConstants.ROLE_ADMIN)
                         .requestMatchers(AppConstants.API_ADMIN_ORDER).hasAnyRole(AppConstants.ROLE_ADMIN, AppConstants.ROLE_STAFF)
                         .requestMatchers(AppConstants.API_ADMIN_INVENTORY).hasAnyRole(AppConstants.ROLE_ADMIN, AppConstants.ROLE_STAFF)
