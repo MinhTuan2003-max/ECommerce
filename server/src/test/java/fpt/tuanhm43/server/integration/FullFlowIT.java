@@ -3,8 +3,10 @@ package fpt.tuanhm43.server.integration;
 import com.jayway.jsonpath.JsonPath;
 import fpt.tuanhm43.server.entities.*;
 import fpt.tuanhm43.server.repositories.*;
+import fpt.tuanhm43.server.services.MailService;
 import fpt.tuanhm43.server.services.impl.PaymentServiceImpl;
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Slf4j
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FullFlowIT {
@@ -42,9 +45,10 @@ class FullFlowIT {
     @Autowired private ProductVariantRepository variantRepository;
     @Autowired private InventoryRepository inventoryRepository;
     @Autowired private OrderRepository orderRepository;
+    @Autowired private ProductSearchRepository productSearchRepository;
 
     @SpyBean private PaymentServiceImpl paymentService;
-    @MockBean private fpt.tuanhm43.server.services.MailService mailService;
+    @MockBean private MailService mailService;
 
     private UUID variantId;
     private MockHttpSession session;
@@ -68,11 +72,23 @@ class FullFlowIT {
 
         variantId = variant.getId();
 
-        // Tăng lên 10 để tránh lỗi logic "Out of stock" khi giỏ hàng chiếm cái duy nhất
         inventoryRepository.save(Inventory.builder()
                 .productVariant(variant).quantityAvailable(10).quantityReserved(0).build());
 
         entityManager.flush();
+
+        productSearchRepository.save(fpt.tuanhm43.server.documents.ProductSearchDocument.builder()
+                .id(product.getId().toString())
+                .name(product.getName())
+                .slug(product.getSlug())
+                .description(product.getDescription())
+                .minPrice(product.getMinPrice().doubleValue())
+                .categoryId(category.getId().toString())
+                .categoryName(category.getName())
+                .isActive(true)
+                .createdAt(java.time.LocalDateTime.now())
+                .build());
+
         entityManager.clear();
     }
 
@@ -83,8 +99,20 @@ class FullFlowIT {
     void testFullWorkflow() throws Exception {
 
         // STEP 1: Catalog
-        mockMvc.perform(get("/api/v1/products"))
-                .andExpect(status().isOk());
+        String searchJson = """
+            {
+                "page": 0,
+                "size": 10,
+                "keyword": "Hypebeast",
+                "fuzzy": false
+            }
+            """;
+
+        mockMvc.perform(post("/api/v1/products/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(searchJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].name").value("Hypebeast Tee"));
 
         // STEP 2: Add to Cart
         String addCartJson = "{\"variantId\": \"" + variantId + "\", \"quantity\": 1}";
@@ -134,17 +162,22 @@ class FullFlowIT {
                         .content(webhookJson))
                 .andExpect(status().isOk());
 
-        // Force commit to verify data
         TestTransaction.flagForCommit();
         TestTransaction.end();
         TestTransaction.start();
 
         // STEP 6: Verify Inventory
         Inventory freshInv = inventoryRepository.findByProductVariantId(variantId).orElseThrow();
-        // Ban đầu 10, mua 1 còn 9 khả dụng
         assertThat(freshInv.getQuantityAvailable()).isEqualTo(9);
         assertThat(freshInv.getQuantityReserved()).isZero();
 
         System.out.println("ALL STEPS PASSED!");
+    }
+
+    @AfterEach
+    void tearDown() {
+        productSearchRepository.deleteAll();
+
+        log.info("Cleaned up Elasticsearch and Database state.");
     }
 }

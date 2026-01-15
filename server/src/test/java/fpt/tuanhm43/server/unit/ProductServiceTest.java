@@ -3,26 +3,24 @@ package fpt.tuanhm43.server.unit;
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
 import fpt.tuanhm43.server.dtos.product.request.ProductFilterRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
-import fpt.tuanhm43.server.entities.*;
+import fpt.tuanhm43.server.dtos.search.request.AdvancedSearchRequest;
 import fpt.tuanhm43.server.repositories.CategoryRepository;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import fpt.tuanhm43.server.services.impl.ProductServiceImpl;
+import fpt.tuanhm43.server.services.impl.ProductSearchServiceImpl; // Cần import cái này
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,53 +29,58 @@ class ProductServiceTest {
 
     @Mock private ProductRepository productRepository;
     @Mock private CategoryRepository categoryRepository;
+
+    @Mock private ProductSearchServiceImpl productSearchService;
+
     @InjectMocks private ProductServiceImpl productService;
 
     @Test
-    @DisplayName("Khách vào web: Danh sách sản phẩm phải có phân trang và lọc được theo Category")
+    @DisplayName("Khách vào web: Danh sách sản phẩm phải gọi qua Elasticsearch Search Service")
     void getAllWithFilter_ByCategory() {
-        // Given: Giả lập yêu cầu lọc Hoodie, trang 0, size 20
+        // Given
         UUID categoryId = UUID.randomUUID();
         ProductFilterRequest filter = new ProductFilterRequest();
         filter.setCategoryId(categoryId);
         filter.setPage(0);
         filter.setSize(20);
 
-        Category category = Category.builder().id(categoryId).name("Hoodie").build();
-        Product product = Product.builder().name("Hoodie FPT").category(category).isActive(true).variants(List.of()).build();
-        Page<Product> page = new PageImpl<>(List.of(product));
+        // Tạo dữ liệu giả trả về từ ES
+        ProductResponse productResponse = ProductResponse.builder()
+                .name("Hoodie FPT")
+                .categoryName("Hoodie")
+                .build();
 
-        when(productRepository.findByCategoryId(eq(categoryId), any(Pageable.class))).thenReturn(page);
+        PageResponseDTO<ProductResponse> mockPage = PageResponseDTO.<ProductResponse>builder()
+                .content(List.of(productResponse))
+                .totalElements(1L)
+                .build();
+
+        // FIX 2: Stubbing vào hàm advancedSearch thay vì Repository cũ
+        when(productSearchService.advancedSearch(any(AdvancedSearchRequest.class))).thenReturn(mockPage);
 
         // When
         PageResponseDTO<ProductResponse> result = productService.getAllWithFilter(filter);
 
-        // Then: Kiểm tra kết quả trả về có đúng Category không
+        // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getCategoryName()).isEqualTo("Hoodie");
-        verify(productRepository).findByCategoryId(eq(categoryId), any(Pageable.class));
+        assertThat(result.getContent().getFirst().getCategoryName()).isEqualTo("Hoodie");
+
+        verify(productSearchService).advancedSearch(any(AdvancedSearchRequest.class));
     }
 
     @Test
-    @DisplayName("Khách tìm đồ: Phải lọc được theo khoảng giá (Ví dụ: 1tr - 5tr)")
+    @DisplayName("Khách tìm đồ: Kiểm tra luồng gọi lọc giá qua Elasticsearch")
     void getAllWithFilter_ByPriceRange() {
         // Given
         ProductFilterRequest filter = new ProductFilterRequest();
-        filter.setMinPrice(new BigDecimal("1000000"));
-        filter.setMaxPrice(new BigDecimal("5000000"));
+        filter.setMinPrice(BigDecimal.valueOf(1000000));
+        filter.setMaxPrice(BigDecimal.valueOf(5000000));
 
+        when(productSearchService.advancedSearch(any(AdvancedSearchRequest.class)))
+                .thenReturn(PageResponseDTO.<ProductResponse>builder().content(List.of()).build());
 
-        when(productRepository.findByPriceRange(any(), any(), any()))
-                .thenReturn(new PageImpl<>(List.of()));
-
-        // When
         productService.getAllWithFilter(filter);
 
-        // Then: Đảm bảo Repository được gọi với đúng giá trị BigDecimal
-        verify(productRepository).findByPriceRange(
-                argThat(price -> price.compareTo(BigDecimal.valueOf(1000000.0)) == 0),
-                argThat(price -> price.compareTo(BigDecimal.valueOf(5000000.0)) == 0),
-                any(Pageable.class)
-        );
+        verify(productSearchService).advancedSearch(any(AdvancedSearchRequest.class));
     }
 }
