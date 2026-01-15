@@ -36,9 +36,10 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Run Tests
+      - name: Run tests
         run: mvn test
-
+        working-directory: server
+        
       - name: Build JAR
         run: mvn clean package -DskipTests
 
