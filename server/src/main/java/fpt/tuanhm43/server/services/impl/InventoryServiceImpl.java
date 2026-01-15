@@ -2,14 +2,13 @@ package fpt.tuanhm43.server.services.impl;
 
 import fpt.tuanhm43.server.entities.Inventory;
 import fpt.tuanhm43.server.entities.InventoryReservation;
-import fpt.tuanhm43.server.entities.ProductVariant;
+import fpt.tuanhm43.server.entities.Order;
 import fpt.tuanhm43.server.enums.ReservationStatus;
 import fpt.tuanhm43.server.exceptions.InsufficientStockException;
 import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
 import fpt.tuanhm43.server.repositories.InventoryRepository;
 import fpt.tuanhm43.server.repositories.InventoryReservationRepository;
 import fpt.tuanhm43.server.repositories.OrderRepository;
-import fpt.tuanhm43.server.repositories.ProductVariantRepository;
 import fpt.tuanhm43.server.services.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,6 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryReservationRepository reservationRepository;
-    private final ProductVariantRepository variantRepository;
     private final OrderRepository orderRepository;
 
     /**
@@ -43,9 +41,12 @@ public class InventoryServiceImpl implements InventoryService {
      */
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void reserveStock(String sessionId, List<ReservationItem> items, int timeoutMinutes) {
-        log.info("Reserving stock for session: {}, items: {}, timeout: {} min",
-                sessionId, items.size(), timeoutMinutes);
+    public void reserveStock(String sessionId, UUID orderId, List<ReservationItem> items, int timeoutMinutes) {
+        log.info("Reserving stock for session: {}, order: {}, items: {}, timeout: {} min",
+                sessionId, orderId, items.size(), timeoutMinutes);
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(timeoutMinutes);
 
@@ -55,29 +56,17 @@ public class InventoryServiceImpl implements InventoryService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             INVENTORY_RESOURCE, VARIANT_ID_FIELD, item.variantId()));
 
-            // 2. Validate stock availability
             if (!inventory.canFulfill(item.quantity())) {
-                log.warn("Insufficient stock - Variant: {}, Requested: {}, Available: {}",
-                        item.variantId(), item.quantity(), inventory.getQuantityAvailable());
-
                 throw new InsufficientStockException(
-                        item.variantId(),
-                        item.quantity(),
-                        inventory.getQuantityAvailable()
-                );
+                        item.variantId(), item.quantity(), inventory.getQuantityAvailable());
             }
 
-            // 3. Reserve stock (update inventory)
             inventory.reserve(item.quantity());
             inventoryRepository.save(inventory);
 
-            // 4. Create reservation record
-            ProductVariant variant = variantRepository.findById(item.variantId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "ProductVariant", "id", item.variantId()));
-
             InventoryReservation reservation = InventoryReservation.builder()
-                    .productVariant(variant)
+                    .productVariant(inventory.getProductVariant())
+                    .order(order)
                     .sessionId(sessionId)
                     .quantity(item.quantity())
                     .status(ReservationStatus.ACTIVE)
@@ -86,11 +75,9 @@ public class InventoryServiceImpl implements InventoryService {
 
             reservationRepository.save(reservation);
 
-            log.info("Reserved {} units of variant {} for session {}",
-                    item.quantity(), item.variantId(), sessionId);
+            log.info("Reserved {} units of variant {} for order {}",
+                    item.quantity(), item.variantId(), order.getOrderNumber());
         }
-
-        log.info("Stock reservation completed for session: {}", sessionId);
     }
 
     /**
@@ -163,7 +150,6 @@ public class InventoryServiceImpl implements InventoryService {
     public void deductReservedStock(UUID orderId) {
         log.info("Deducting reserved stock for order: {}", orderId);
 
-        // Verify order exists
         orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
@@ -171,24 +157,33 @@ public class InventoryServiceImpl implements InventoryService {
 
         for (InventoryReservation reservation : reservations) {
             if (reservation.getStatus() == ReservationStatus.ACTIVE) {
-                // Get inventory with lock
                 Inventory inventory = inventoryRepository
                         .findByVariantIdWithLock(reservation.getProductVariant().getId())
                         .orElseThrow(() -> new ResourceNotFoundException(
                                 INVENTORY_RESOURCE, VARIANT_ID_FIELD, reservation.getProductVariant().getId()));
 
-                // Deduct reserved quantity
-                inventory.deductReserved(reservation.getQuantity());
+                int quantityToDeduct = reservation.getQuantity();
+
+                if (inventory.getQuantityReserved() < quantityToDeduct) {
+                    throw new IllegalStateException(
+                            String.format("Insufficient reserved stock for variant %s. Reserved: %d, Needed: %d",
+                                    reservation.getProductVariant().getId(),
+                                    inventory.getQuantityReserved(),
+                                    quantityToDeduct));
+                }
+
+                inventory.deductReserved(quantityToDeduct);
                 inventoryRepository.save(inventory);
 
-                // Mark reservation as completed
                 reservation.markCompleted();
                 reservationRepository.save(reservation);
 
-                log.info("Deducted {} units of variant {} for order {}",
-                        reservation.getQuantity(),
+                log.info("Deducted {} units of variant {} for order {} | Available: {}, Reserved: {}",
+                        quantityToDeduct,
                         reservation.getProductVariant().getId(),
-                        orderId);
+                        orderId,
+                        inventory.getQuantityAvailable(),
+                        inventory.getQuantityReserved());
             }
         }
 

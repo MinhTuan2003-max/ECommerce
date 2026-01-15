@@ -30,7 +30,15 @@ public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, UUID
     /**
      * Find cart with items (fetch join)
      */
-    @Query("SELECT c FROM ShoppingCart c LEFT JOIN FETCH c.items WHERE c.sessionId = :sessionId")
+    @Query("""
+    SELECT DISTINCT c FROM ShoppingCart c
+    LEFT JOIN FETCH c.items ci
+    LEFT JOIN FETCH ci.productVariant pv
+    LEFT JOIN FETCH pv.product p
+    LEFT JOIN FETCH pv.inventory i
+    WHERE c.sessionId = :sessionId
+    AND c.isDeleted = false
+""")
     Optional<ShoppingCart> findBySessionIdWithItems(@Param("sessionId") String sessionId);
 
     /**

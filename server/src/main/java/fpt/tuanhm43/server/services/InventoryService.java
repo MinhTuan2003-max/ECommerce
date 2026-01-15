@@ -12,7 +12,7 @@ public interface InventoryService {
     /**
      * Reserve stock for checkout (CRITICAL - with pessimistic lock)
      */
-    void reserveStock(String sessionId, List<ReservationItem> items, int timeoutMinutes);
+    void reserveStock(String sessionId, UUID orderId, List<ReservationItem> items, int timeoutMinutes);
 
     /**
      * Release reservation (timeout or cancel)

@@ -118,6 +118,8 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.API_PRODUCT).permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, AppConstants.API_CATEGORY).permitAll()
+                        .requestMatchers("/api/v1/payments/webhook/**").permitAll()
+                        .requestMatchers("/api/v1/orders/track/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)

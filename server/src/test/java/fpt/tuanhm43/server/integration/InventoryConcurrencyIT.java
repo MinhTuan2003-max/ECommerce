@@ -1,10 +1,15 @@
 package fpt.tuanhm43.server.integration;
 
 import fpt.tuanhm43.server.entities.Inventory;
+import fpt.tuanhm43.server.entities.Order;
 import fpt.tuanhm43.server.entities.Product;
 import fpt.tuanhm43.server.entities.ProductVariant;
+import fpt.tuanhm43.server.enums.OrderStatus;
+import fpt.tuanhm43.server.enums.PaymentMethod;
+import fpt.tuanhm43.server.enums.PaymentStatus;
 import fpt.tuanhm43.server.exceptions.InsufficientStockException;
 import fpt.tuanhm43.server.repositories.InventoryRepository;
+import fpt.tuanhm43.server.repositories.OrderRepository;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import fpt.tuanhm43.server.repositories.ProductVariantRepository;
 import fpt.tuanhm43.server.services.InventoryService;
@@ -19,7 +24,9 @@ import org.springframework.test.context.ActiveProfiles;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,79 +40,100 @@ class InventoryConcurrencyIT {
     @Autowired private InventoryRepository inventoryRepository;
     @Autowired private ProductVariantRepository variantRepository;
     @Autowired private ProductRepository productRepository;
+    @Autowired private OrderRepository orderRepository;
 
     private UUID variantId;
+    private UUID orderId1;
+    private UUID orderId2;
 
     @BeforeEach
     void setup() {
         Product product = productRepository.save(Product.builder()
-                .name("Giày Nike Air Jordan Test")
-                .slug("nike-aj1-test-" + UUID.randomUUID()) // Tránh trùng slug
+                .name("Limited Sneaker")
+                .slug("sneaker-" + UUID.randomUUID())
                 .basePrice(new BigDecimal("5000000"))
                 .isActive(true)
                 .build());
 
-        // 2. Tạo Biến thể sản phẩm và GẮN VÀO sản phẩm ở trên
         ProductVariant variant = variantRepository.save(ProductVariant.builder()
                 .product(product)
-                .sku("LIMIT-EDITION-" + UUID.randomUUID().toString().toUpperCase())
+                .sku("SKU-LIMIT-" + UUID.randomUUID().toString().toUpperCase().substring(0, 8))
                 .priceAdjustment(BigDecimal.ZERO)
                 .isActive(true)
                 .build());
 
-
         variantId = variant.getId();
 
-        // 3. Khởi tạo kho cho biến thể đó
         inventoryRepository.save(Inventory.builder()
                 .productVariant(variant)
-                .quantityAvailable(1) // Chỉ có 1 cái để test tranh chấp
+                .quantityAvailable(1)
                 .quantityReserved(0)
+                .build());
+
+        orderId1 = createDummyOrder("User 1").getId();
+        orderId2 = createDummyOrder("User 2").getId();
+    }
+
+    private Order createDummyOrder(String customerName) {
+        return orderRepository.save(Order.builder()
+                .orderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .trackingToken(UUID.randomUUID())
+                .customerName(customerName)
+                .customerEmail(customerName.toLowerCase().replace(" ", "") + "@test.com")
+                .customerPhone("0123456789")
+                .shippingAddress("Test Address")
+                .status(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.PENDING)
+                .paymentMethod(PaymentMethod.SEPAY)
+                .totalAmount(new BigDecimal("5000000"))
+                .currency("VND")
                 .build());
     }
 
     @Test
-    @DisplayName("Test tranh chấp: 2 người cùng mua 1 món đồ - Chỉ 1 người thành công")
+    @DisplayName("Test race condition: 2 users buying last item - Only 1 succeeds")
     void testRaceCondition() throws InterruptedException {
         int threadCount = 2;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch startLatch = new CountDownLatch(1); // Súng lệnh xuất phát
-        CountDownLatch endLatch = new CountDownLatch(threadCount); // Chờ cả 2 xong
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(threadCount);
 
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
 
+        List<UUID> orderIds = List.of(orderId1, orderId2);
+
         for (int i = 0; i < threadCount; i++) {
-            String sessionId = "user-session-" + i;
+            String sessionId = "session-" + i;
+            UUID orderId = orderIds.get(i);
+
             executor.execute(() -> {
                 try {
                     startLatch.await();
-                    inventoryService.reserveStock(sessionId,
+                    inventoryService.reserveStock(sessionId, orderId,
                             List.of(new InventoryService.ReservationItem(variantId, 1)), 15);
                     successCount.incrementAndGet();
                 } catch (InsufficientStockException e) {
                     failCount.incrementAndGet();
-                    log.info("Khách hàng {} nhận thông báo: Hàng đã hết!", sessionId);
                 } catch (Exception e) {
-                    // Đề phòng các lỗi khác như Timeout hoặc Concurrency
-                    log.error("Lỗi không mong muốn: {}", e.getMessage());
+                    log.error("Unexpected error: {}", e.getMessage());
                 } finally {
                     endLatch.countDown();
                 }
             });
-
         }
 
-        startLatch.countDown(); // BẮN SÚNG! 2 người cùng lao vào
-        endLatch.await(); // Đợi 2 người hoàn thành
+        startLatch.countDown();
+        endLatch.await();
 
-        // KIỂM TRA: Chỉ được phép có 1 người thành công, 1 người thất bại
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(failCount.get()).isEqualTo(1);
 
-        // Kiểm tra kho cuối cùng: Available phải về 0, Reserved phải lên 1
-        Inventory finalInv = inventoryRepository.findByProductVariantId(variantId).get();
-        assertThat(finalInv.getQuantityAvailable()).isEqualTo(0);
+        Inventory finalInv = inventoryRepository
+                .findByProductVariantId(variantId)
+                .orElseThrow(() -> new AssertionError("Inventory not found for variant " + variantId));
+
+        assertThat(finalInv.getQuantityAvailable()).isZero();
         assertThat(finalInv.getQuantityReserved()).isEqualTo(1);
     }
 }

@@ -26,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -69,7 +70,6 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Some items in cart are out of stock");
         }
 
-        // Create order
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .trackingToken(UUID.randomUUID())
@@ -84,7 +84,6 @@ public class OrderServiceImpl implements OrderService {
                 .currency("VND")
                 .build();
 
-        // Add items from cart
         List<InventoryService.ReservationItem> reservationItems = new ArrayList<>();
 
         for (CartItem cartItem : cart.getItems()) {
@@ -106,16 +105,14 @@ public class OrderServiceImpl implements OrderService {
         order.calculateTotals();
         Order savedOrder = orderRepository.save(order);
 
-        // Reserve inventory
         try {
-            inventoryService.reserveStock(sessionId, reservationItems, 15);
+            inventoryService.reserveStock(sessionId, savedOrder.getId(), reservationItems, 15);
             log.info("Inventory reserved for order: {}", savedOrder.getOrderNumber());
         } catch (Exception e) {
             log.error("Failed to reserve inventory for order: {}", savedOrder.getId(), e);
             throw new BadRequestException("Failed to reserve items: " + e.getMessage());
         }
 
-        // Record initial status
         savedOrder.addStatusHistory(OrderStatusHistory.builder()
                 .order(savedOrder)
                 .fromStatus(null)
@@ -124,22 +121,19 @@ public class OrderServiceImpl implements OrderService {
                 .reason("Order created from cart")
                 .build());
 
-        // Clear cart
         cartRepository.delete(cart);
 
-        // Send confirmation email
         try {
             mailService.sendOrderConfirmation(savedOrder);
         } catch (Exception e) {
             log.warn("Failed to send confirmation email for order: {}", savedOrder.getId(), e);
         }
 
-        log.info("Order from cart created successfully: {}", savedOrder.getOrderNumber());
         return mapToOrderDetailResponse(savedOrder);
     }
 
     @Override
-    @Transactional
+    @Transactional // Đảm bảo có Transactional để rollback nếu reserveStock thất bại
     public OrderDetailResponse createOrder(CreateOrderRequest request) {
         log.info("Creating order directly - Customer: {}", request.getCustomerName());
 
@@ -147,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Order must have at least one item");
         }
 
-        // Create order
+        // 1. Tạo đối tượng Order
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .trackingToken(UUID.randomUUID())
@@ -162,23 +156,18 @@ public class OrderServiceImpl implements OrderService {
                 .currency("VND")
                 .build();
 
-        // Add items
         List<InventoryService.ReservationItem> reservationItems = new ArrayList<>();
 
         for (OrderItemRequest itemRequest : request.getItems()) {
             ProductVariant variant = variantRepository.findById(itemRequest.getVariantId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "ProductVariant", "id", itemRequest.getVariantId()));
-
-            Inventory inventory = variant.getInventory();
-            if (inventory == null || inventory.getQuantityAvailable() < itemRequest.getQuantity()) {
-                throw new BadRequestException("Insufficient stock for variant: " + variant.getSku());
-            }
+                    .orElseThrow(() -> new ResourceNotFoundException("ProductVariant", "id", itemRequest.getVariantId()));
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .productVariant(variant)
                     .quantity(itemRequest.getQuantity())
+                    .unitPrice(variant.getFinalPrice())
+                    .subtotal(variant.getFinalPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity())))
                     .build();
             order.addItem(orderItem);
 
@@ -191,15 +180,14 @@ public class OrderServiceImpl implements OrderService {
         order.calculateTotals();
         Order savedOrder = orderRepository.save(order);
 
-        // Reserve inventory
         try {
-            inventoryService.reserveStock(UUID.randomUUID().toString(), reservationItems, 15);
+            inventoryService.reserveStock(savedOrder.getId().toString(), savedOrder.getId(), reservationItems, 15);
+            log.info("Inventory reserved for order: {}", savedOrder.getOrderNumber());
         } catch (Exception e) {
             log.error("Failed to reserve inventory for order: {}", savedOrder.getId(), e);
             throw new BadRequestException("Failed to reserve items: " + e.getMessage());
         }
 
-        // Record initial status
         savedOrder.addStatusHistory(OrderStatusHistory.builder()
                 .order(savedOrder)
                 .fromStatus(null)
@@ -214,7 +202,6 @@ public class OrderServiceImpl implements OrderService {
             log.warn("Failed to send confirmation email for order: {}", savedOrder.getId(), e);
         }
 
-        log.info("Order created successfully: {}", savedOrder.getOrderNumber());
         return mapToOrderDetailResponse(savedOrder);
     }
 
@@ -245,7 +232,6 @@ public class OrderServiceImpl implements OrderService {
     public PageResponseDTO<OrderResponse> getUserOrders(UUID userId, int page, int size) {
         log.info("Getting orders for user: {}, Page: {}, Size: {}", userId, page, size);
 
-        // Verify user exists
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -276,12 +262,10 @@ public class OrderServiceImpl implements OrderService {
 
         Page<Order> orders = orderRepository.findAll(pageable);
 
-        // Apply status filter if provided
         if (filter.getStatus() != null) {
             orders = orderRepository.findByStatusOrderByCreatedAtDesc(filter.getStatus(), pageable);
         }
 
-        // Apply payment status filter if provided
         if (filter.getPaymentStatus() != null) {
             orders = orderRepository.findByPaymentStatusOrderByCreatedAtDesc(filter.getPaymentStatus(), pageable);
         }
@@ -306,7 +290,6 @@ public class OrderServiceImpl implements OrderService {
         order.updateStatus(request.getNewStatus(), request.getChangedBy(), request.getReason());
         Order updatedOrder = orderRepository.save(order);
 
-        // Send status update email
         try {
             if (request.getNewStatus() == OrderStatus.SHIPPING) {
                 mailService.sendOrderShipped(updatedOrder);
@@ -336,14 +319,12 @@ public class OrderServiceImpl implements OrderService {
         order.updateStatus(OrderStatus.CANCELLED, "CUSTOMER", reason);
         Order cancelledOrder = orderRepository.save(order);
 
-        // Release inventory reservations
         try {
             inventoryService.releaseReservationByOrder(orderId);
         } catch (Exception e) {
             log.warn("Failed to release inventory for cancelled order: {}", orderId, e);
         }
 
-        // Send cancellation email
         try {
             mailService.sendOrderCancelled(cancelledOrder, reason);
         } catch (Exception e) {
@@ -360,7 +341,6 @@ public class OrderServiceImpl implements OrderService {
         LocalDate today = LocalDate.now();
         String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        // Get count of orders created today using date range query
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
         long countToday = orderRepository.findByDateRange(startOfDay, endOfDay, PageRequest.of(0, Integer.MAX_VALUE)).getTotalElements();
