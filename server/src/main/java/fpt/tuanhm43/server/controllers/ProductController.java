@@ -3,10 +3,11 @@ package fpt.tuanhm43.server.controllers;
 import fpt.tuanhm43.server.dtos.ApiResponseDTO;
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
 import fpt.tuanhm43.server.dtos.product.request.CreateProductRequest;
-import fpt.tuanhm43.server.dtos.product.request.ProductFilterRequest;
 import fpt.tuanhm43.server.dtos.product.request.UpdateProductRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
+import fpt.tuanhm43.server.dtos.search.request.AdvancedSearchRequest;
+import fpt.tuanhm43.server.services.ProductSearchService;
 import fpt.tuanhm43.server.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,15 +32,7 @@ import java.util.UUID;
 public class ProductController {
 
     private final ProductService productService;
-
-    @GetMapping
-    @Operation(summary = "Get all products", description = "Retrieve a paginated list of products with filters like price range, brand, and category.")
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> getAllProducts(
-            @Valid ProductFilterRequest filter) {
-        log.info("Fetching products with filter: {}", filter);
-        PageResponseDTO<ProductResponse> response = productService.getAllWithFilter(filter);
-        return ResponseEntity.ok(ApiResponseDTO.success(response));
-    }
+    private final ProductSearchService productSearchService;
 
     @GetMapping("/{id}")
     @Operation(summary = "Get product by ID", description = "Fetch full product details including variants (size/color) and images by its UUID.")
@@ -61,14 +54,12 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
-    @GetMapping("/search")
-    @Operation(summary = "Search products", description = "Search products by keyword in name or description with pagination support.")
-    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> searchProducts(
-            @Parameter(description = "Keyword to search", example = "Jordan") @RequestParam("keyword") String keyword,
-            @Parameter(description = "Page number (0-based)") @RequestParam(name = "page", defaultValue = "0") int page,
-            @Parameter(description = "Items per page") @RequestParam(name = "size", defaultValue = "10") int size) {
-        log.info("Searching products with keyword: {}", keyword);
-        PageResponseDTO<ProductResponse> response = productService.searchByKeyword(keyword, page, size);
+    @PostMapping("/search")
+    @Operation(summary = "Advanced Dynamic Search", description = "Gộp chung Search và Filter sử dụng Elasticsearch")
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProductResponse>>> advancedSearch(
+            @RequestBody AdvancedSearchRequest request) {
+        log.info("Advanced search request: {}", request);
+        PageResponseDTO<ProductResponse> response = productSearchService.advancedSearch(request);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 

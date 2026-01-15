@@ -105,6 +105,7 @@ public class SecurityConfig {
                         .requestMatchers(AppConstants.PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(GET, AppConstants.API_PRODUCT).permitAll()
                         .requestMatchers(GET, AppConstants.API_CATEGORY).permitAll()
+                        .requestMatchers(POST, "/api/v1/products/search").permitAll()
                         .requestMatchers("/api/v1/payments/webhook/**").permitAll()
                         .requestMatchers("/api/v1/orders/track/**").permitAll()
                         .requestMatchers(POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)
