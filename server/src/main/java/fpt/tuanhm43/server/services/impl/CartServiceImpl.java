@@ -25,7 +25,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -263,7 +262,7 @@ public class CartServiceImpl implements CartService {
     private CartResponse mapToCartResponse(ShoppingCart cart) {
         List<CartItemResponse> items = cart.getItems().stream()
                 .map(this::mapToCartItemResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         return CartResponse.builder()
                 .sessionId(cart.getSessionId())

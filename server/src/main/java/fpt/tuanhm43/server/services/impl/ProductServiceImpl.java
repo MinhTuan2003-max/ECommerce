@@ -8,6 +8,7 @@ import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
 import fpt.tuanhm43.server.entities.Category;
 import fpt.tuanhm43.server.entities.Product;
+import fpt.tuanhm43.server.entities.ProductVariant;
 import fpt.tuanhm43.server.exceptions.BadRequestException;
 import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
 import fpt.tuanhm43.server.repositories.CategoryRepository;
@@ -28,7 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductServiceImpl implements ProductService {
-    // Service implementation for product management
+
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final String CREATED_AT_FIELD = "createdAt";
     private static final String PRODUCT = "Product";
@@ -234,9 +235,8 @@ public class ProductServiceImpl implements ProductService {
      * Map Product entity to ProductResponse DTO
      */
     private ProductResponse mapToProductResponse(Product product) {
-        // Get first image from variants
         String imageUrl = product.getVariants().stream()
-                .map(variant -> variant.getImageUrl())
+                .map(ProductVariant::getImageUrl)
                 .filter(img -> img != null && !img.trim().isEmpty())
                 .findFirst()
                 .orElse(product.getImageUrl());

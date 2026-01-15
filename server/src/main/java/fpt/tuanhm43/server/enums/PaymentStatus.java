@@ -16,10 +16,6 @@ public enum PaymentStatus {
         this.displayName = displayName;
     }
 
-    public boolean isCompleted() {
-        return this == PAID || this == REFUNDED;
-    }
-
     public boolean isFinal() {
         return this == PAID || this == FAILED || this == REFUNDED;
     }

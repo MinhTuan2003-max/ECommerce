@@ -5,9 +5,7 @@ import lombok.Getter;
 @Getter
 public enum PaymentMethod {
     COD("Thanh toán khi nhận hàng"),
-    SEPAY("Chuyển khoản ngân hàng (SePay)"),
-    MOMO("Ví MoMo"),
-    ZALOPAY("Ví ZaloPay");
+    SEPAY("Chuyển khoản ngân hàng (SePay)");
 
     private final String displayName;
 
@@ -15,7 +13,4 @@ public enum PaymentMethod {
         this.displayName = displayName;
     }
 
-    public boolean requiresOnlinePayment() {
-        return this != COD;
-    }
 }

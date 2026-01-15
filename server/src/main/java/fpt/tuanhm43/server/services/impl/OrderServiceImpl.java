@@ -16,6 +16,7 @@ import fpt.tuanhm43.server.repositories.*;
 import fpt.tuanhm43.server.services.InventoryService;
 import fpt.tuanhm43.server.services.MailService;
 import fpt.tuanhm43.server.services.OrderService;
+import fpt.tuanhm43.server.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -54,9 +55,11 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailResponse createOrderFromCart(String sessionId, CreateOrderRequest request) {
         log.info("Creating order from cart - Session: {}, Customer: {}", sessionId, request.getCustomerName());
 
-        // Validate cart
-        ShoppingCart cart = cartRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new BadRequestException("Cart not found or expired"));
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+        ShoppingCart cart = cartRepository.findByUserId(currentUserId)
+                .orElseGet(() -> cartRepository.findBySessionId(sessionId)
+                        .orElseThrow(() -> new BadRequestException("Cart not found or expired")));
 
         if (!cart.hasItems()) {
             throw new BadRequestException("Cart is empty");

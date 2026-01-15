@@ -50,13 +50,4 @@ public class OrderStatusHistory extends BaseEntity {
         return fromStatus == null;
     }
 
-    /**
-     * Get status change description
-     */
-    public String getChangeDescription() {
-        if (isInitialStatus()) {
-            return String.format("Order created with status: %s", toStatus);
-        }
-        return String.format("Status changed from %s to %s", fromStatus, toStatus);
-    }
 }

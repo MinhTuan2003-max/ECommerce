@@ -42,7 +42,7 @@ public class InventoryServiceImpl implements InventoryService {
      * @param timeoutMinutes Reservation timeout (default 15)
      */
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void reserveStock(String sessionId, List<ReservationItem> items, int timeoutMinutes) {
         log.info("Reserving stock for session: {}, items: {}, timeout: {} min",
                 sessionId, items.size(), timeoutMinutes);

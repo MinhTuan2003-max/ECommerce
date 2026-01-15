@@ -20,7 +20,7 @@ public class CartCleanupScheduler {
      * Clean up expired carts
      * Runs every hour at minute 0
      */
-    @Scheduled(cron = "0 0 * * * *") // Every hour
+    @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void cleanupExpiredCarts() {
         log.info("Starting cart cleanup job...");
@@ -43,7 +43,7 @@ public class CartCleanupScheduler {
      * Log cart statistics
      * Runs every day at 2 AM
      */
-    @Scheduled(cron = "0 0 2 * * *") // Daily at 2 AM
+    @Scheduled(cron = "0 0 2 * * *")
     public void logCartStatistics() {
         try {
             long totalCarts = cartRepository.count();

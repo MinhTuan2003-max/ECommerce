@@ -3,7 +3,6 @@ package fpt.tuanhm43.server.repositories;
 import fpt.tuanhm43.server.entities.InventoryReservation;
 import fpt.tuanhm43.server.enums.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,72 +28,13 @@ public interface InventoryReservationRepository extends JpaRepository<InventoryR
     List<InventoryReservation> findByOrderId(UUID orderId);
 
     /**
-     * Find active reservations by variant
-     */
-    @Query("""
-        SELECT r FROM InventoryReservation r WHERE r.productVariant.id = :variantId AND r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE
-    """)
-    List<InventoryReservation> findActiveByVariantId(@Param("variantId") UUID variantId);
-
-    /**
      * Find expired active reservations (for cleanup job)
      */
     @Query("""
-        SELECT r FROM InventoryReservation r 
-        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE 
+        SELECT r FROM InventoryReservation r\s
+        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE\s
         AND r.expiresAt < :now
-    """)
+   \s""")
     List<InventoryReservation> findExpiredReservations(@Param("now") LocalDateTime now);
 
-    /**
-     * Find reservations expiring soon (warning)
-     */
-    @Query("""
-        SELECT r FROM InventoryReservation r 
-        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE 
-        AND r.expiresAt BETWEEN :now AND :threshold
-    """)
-    List<InventoryReservation> findExpiringSoon(
-            @Param("now") LocalDateTime now,
-            @Param("threshold") LocalDateTime threshold
-    );
-
-    /**
-     * Mark expired reservations
-     */
-    @Modifying
-    @Query("""
-        UPDATE InventoryReservation r 
-        SET r.status = fpt.tuanhm43.server.enums.ReservationStatus.EXPIRED 
-        WHERE r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE 
-        AND r.expiresAt < :now
-    """)
-    int markExpiredReservations(@Param("now") LocalDateTime now);
-
-    /**
-     * Delete old reservations (cleanup)
-     */
-    @Modifying
-    @Query("""
-        DELETE FROM InventoryReservation r 
-        WHERE r.status IN (fpt.tuanhm43.server.enums.ReservationStatus.EXPIRED, fpt.tuanhm43.server.enums.ReservationStatus.CANCELLED, fpt.tuanhm43.server.enums.ReservationStatus.COMPLETED) 
-        AND r.createdAt < :threshold
-    """)
-    int deleteOldReservations(@Param("threshold") LocalDateTime threshold);
-
-    /**
-     * Get total reserved quantity for variant
-     */
-    @Query("""
-        SELECT COALESCE(SUM(r.quantity), 0) 
-        FROM InventoryReservation r 
-        WHERE r.productVariant.id = :variantId 
-        AND r.status = fpt.tuanhm43.server.enums.ReservationStatus.ACTIVE
-    """)
-    Integer getTotalReservedQuantity(@Param("variantId") UUID variantId);
-
-    /**
-     * Check if session has active reservation
-     */
-    boolean existsBySessionIdAndStatus(String sessionId, ReservationStatus status);
 }

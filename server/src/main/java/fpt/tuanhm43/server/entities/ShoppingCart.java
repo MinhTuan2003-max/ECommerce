@@ -135,30 +135,4 @@ public class ShoppingCart extends BaseEntity {
                 });
     }
 
-    /**
-     * Get items with stock issues
-     */
-    public List<CartItem> getItemsWithStockIssues() {
-        return items.stream()
-                .filter(item -> {
-                    Inventory inventory = item.getProductVariant().getInventory();
-                    if (inventory == null) return true;
-                    return inventory.getQuantityAvailable() < item.getQuantity();
-                })
-                .toList();
-    }
-
-    /**
-     * Is guest cart
-     */
-    public boolean isGuestCart() {
-        return user == null && sessionId != null;
-    }
-
-    /**
-     * Is user cart
-     */
-    public boolean isUserCart() {
-        return user != null;
-    }
 }

@@ -2,6 +2,7 @@ package fpt.tuanhm43.server.services.impl;
 
 import fpt.tuanhm43.server.dtos.product.request.CreateProductVariantRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductVariantResponse;
+import fpt.tuanhm43.server.entities.Inventory;
 import fpt.tuanhm43.server.entities.Product;
 import fpt.tuanhm43.server.entities.ProductVariant;
 import fpt.tuanhm43.server.exceptions.BadRequestException;
@@ -45,6 +46,14 @@ public class ProductVariantServiceImpl implements ProductVariantService {
                 .imageUrl(request.getImageUrl())
                 .isActive(true)
                 .build();
+
+        Inventory inventory = Inventory.builder()
+                .productVariant(variant)
+                .quantityAvailable(0)
+                .quantityReserved(0)
+                .build();
+
+        variant.setInventory(inventory);
 
         return variantMapper.toResponse(variantRepository.save(variant));
     }

@@ -65,18 +65,6 @@ public abstract class BaseEntity implements Serializable {
         return this.id == null;
     }
 
-    public void markAsDeleted(String deletedBy) {
-        this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();
-        this.deletedBy = deletedBy;
-    }
-
-    public void restore() {
-        this.isDeleted = false;
-        this.deletedAt = null;
-        this.deletedBy = null;
-    }
-
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {

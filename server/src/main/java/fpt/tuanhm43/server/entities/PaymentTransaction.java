@@ -74,58 +74,10 @@ public class PaymentTransaction extends BaseEntity {
     private String providerReference;
 
     /**
-     * Mark as completed
-     */
-    public void markAsCompleted() {
-        this.status = PaymentStatus.PAID;
-    }
-
-    /**
-     * Mark as failed
-     */
-    public void markAsFailed(String reason) {
-        this.status = PaymentStatus.FAILED;
-        this.failureReason = reason;
-    }
-
-    /**
-     * Check if payment is completed
-     */
-    public boolean isCompleted() {
-        return status == PaymentStatus.PAID;
-    }
-
-    /**
-     * Check if payment is pending
-     */
-    public boolean isPending() {
-        return status == PaymentStatus.PENDING || status == PaymentStatus.PROCESSING;
-    }
-
-    /**
      * Check if payment is failed
      */
     public boolean isFailed() {
         return status == PaymentStatus.FAILED;
     }
 
-    /**
-     * Add provider data
-     */
-    public void addProviderData(String key, Object value) {
-        if (providerData == null) {
-            providerData = new HashMap<>();
-        }
-        providerData.put(key, value);
-    }
-
-    /**
-     * Get provider data
-     */
-    public Object getProviderData(String key) {
-        if (providerData == null) {
-            return null;
-        }
-        return providerData.get(key);
-    }
 }

@@ -95,13 +95,4 @@ public class InventoryReservation extends BaseEntity {
         this.status = ReservationStatus.CANCELLED;
     }
 
-    /**
-     * Get remaining time in minutes
-     */
-    public long getRemainingMinutes() {
-        if (isExpired()) {
-            return 0;
-        }
-        return java.time.Duration.between(LocalDateTime.now(), expiresAt).toMinutes();
-    }
 }

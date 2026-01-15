@@ -75,20 +75,6 @@ public class User extends BaseEntity {
     private List<ShoppingCart> carts = new ArrayList<>();
 
     /**
-     * Add role
-     */
-    public void addRole(Role role) {
-        roles.add(role);
-    }
-
-    /**
-     * Remove role
-     */
-    public void removeRole(Role role) {
-        roles.remove(role);
-    }
-
-    /**
      * Check if user has role
      */
     public boolean hasRole(String roleName) {

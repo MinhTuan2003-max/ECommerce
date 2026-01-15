@@ -100,30 +100,4 @@ public class CartItem extends BaseEntity {
         return available != null && available >= quantity;
     }
 
-    /**
-     * Get stock message
-     */
-    public String getStockMessage() {
-        if (productVariant == null || productVariant.getInventory() == null) {
-            return "Out of stock";
-        }
-        Integer available = productVariant.getInventory().getQuantityAvailable();
-        if (available == null || available == 0) {
-            return "Out of stock";
-        }
-        if (available < quantity) {
-            return "Only " + available + " items available";
-        }
-        return "In stock";
-    }
-
-    /**
-     * Get current price of the variant
-     */
-    public BigDecimal getCurrentPrice() {
-        if (productVariant == null) {
-            return unitPrice;
-        }
-        return productVariant.getFinalPrice();
-    }
 }
