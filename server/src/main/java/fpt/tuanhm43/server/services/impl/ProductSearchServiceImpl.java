@@ -90,12 +90,22 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     @Async
     @Override
+    @Transactional(readOnly = true)
     public void syncToElasticsearch(UUID productId) {
-        productRepository.findByIdWithVariants(productId).ifPresent(product -> {
-            ProductSearchDocument doc = productSearchMapper.toDocument(product);
-            searchRepository.save(doc);
-            log.info("Synced product to Elasticsearch: {}", product.getName());
-        });
+        log.info("Async Thread starting sync for product: {}", productId);
+
+        productRepository.findByIdWithCategoryAndVariants(productId).ifPresentOrElse(
+                product -> {
+                    try {
+                        ProductSearchDocument doc = productSearchMapper.toDocument(product);
+                        searchRepository.save(doc);
+                        log.info("✓ Successfully synced to ES: {}", product.getName());
+                    } catch (Exception e) {
+                        log.error("Failed to map or save product to ES: {}", product.getName(), e);
+                    }
+                },
+                () -> log.warn("Product not found in DB for sync: {}", productId)
+        );
     }
 
     private void applySearchFilters(AdvancedSearchRequest request, BoolQuery.Builder boolQuery) {

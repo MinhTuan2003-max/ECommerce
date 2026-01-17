@@ -9,7 +9,9 @@ import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
 import fpt.tuanhm43.server.dtos.search.AdvancedSearchRequest;
 import fpt.tuanhm43.server.entities.Category;
 import fpt.tuanhm43.server.entities.Product;
+import fpt.tuanhm43.server.events.ProductSavedEvent;
 import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
+import fpt.tuanhm43.server.events.ProductDeletedEvent;
 import fpt.tuanhm43.server.mappers.ProductMapper;
 import fpt.tuanhm43.server.repositories.CategoryRepository;
 import fpt.tuanhm43.server.repositories.ProductRepository;
@@ -17,6 +19,7 @@ import fpt.tuanhm43.server.services.ProductService;
 import fpt.tuanhm43.server.services.ProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -36,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductSearchService productSearchService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final ProductMapper productMapper;
 
@@ -115,7 +119,7 @@ public class ProductServiceImpl implements ProductService {
         Product savedProduct = productRepository.save(product);
 
         // Sync to Elasticsearch async
-        productSearchService.syncToElasticsearch(savedProduct.getId());
+        eventPublisher.publishEvent(new ProductSavedEvent(savedProduct.getId()));
 
         return productMapper.toResponse(savedProduct);
     }
@@ -133,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
         Product updatedProduct = productRepository.save(product);
 
         // Sync to Elasticsearch async
-        productSearchService.syncToElasticsearch(id);
+        eventPublisher.publishEvent(new ProductSavedEvent(id));
 
         return productMapper.toResponse(updatedProduct);
     }
@@ -147,7 +151,7 @@ public class ProductServiceImpl implements ProductService {
         product.setIsActive(false);
         productRepository.save(product);
 
-        productSearchService.syncToElasticsearch(id);
+        eventPublisher.publishEvent(new ProductDeletedEvent(id));
     }
 
     private AdvancedSearchRequest.RangeValue createRange(BigDecimal from, BigDecimal to) {
