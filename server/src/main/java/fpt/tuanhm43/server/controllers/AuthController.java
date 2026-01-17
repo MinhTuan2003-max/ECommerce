@@ -29,7 +29,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    @Operation(summary = "Register new user", description = "Creates a new user account with ROLE_USER and sends a verification email.")
+    @Operation(summary = "Register new user", description = "Creates a new user account with ROLE_CUSTOMER and sends a verification email.")
     @ApiResponse(responseCode = "201", description = "User registered successfully")
     @ApiResponse(responseCode = "400", description = "Username or Email already exists")
     public ResponseEntity<ApiResponseDTO<Void>> register(@Valid @RequestBody RegisterRequest request) {

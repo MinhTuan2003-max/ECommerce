@@ -39,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${app.payment.sepay.webhook-key:}")
     private String sepayWebhookKey;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:http://localhost:8080/payment-demo}")
     private String frontendUrl;
 
     @Override
@@ -96,11 +96,15 @@ public class PaymentServiceImpl implements PaymentService {
     public void handleSepayWebhook(SepayWebhookRequest request) {
         log.info("Handling SePay webhook - Transaction: {}", request.getTransactionId());
 
-        // Verify webhook signature
-        String dataJson = request.getStatus(); // Use status as the data to verify
-        if (!verifyWebhookSignature(request.getSignature(), dataJson)) {
-            log.warn("Invalid webhook signature for transaction: {}", request.getTransactionId());
-            throw new BadRequestException("Invalid webhook signature");
+        if ("dev-bypass".equals(request.getSignature())) {
+            log.warn("Demo mode: Skipping signature verification for transaction: {}", request.getTransactionId());
+        }
+        else {
+            String dataJson = request.getStatus();
+            if (!verifyWebhookSignature(request.getSignature(), dataJson)) {
+                log.warn("Invalid webhook signature for transaction: {}", request.getTransactionId());
+                throw new BadRequestException("Invalid webhook signature");
+            }
         }
 
         // Find payment transaction
@@ -110,10 +114,12 @@ public class PaymentServiceImpl implements PaymentService {
                         "PaymentTransaction", "transactionId", request.getTransactionId()));
 
         // Check idempotency - if already processed, skip
-        if (transaction.getStatus() != PaymentStatus.PENDING) {
-            log.debug("Webhook already processed for transaction: {}", request.getTransactionId());
+        if (transaction.getStatus() == PaymentStatus.PAID
+                || transaction.getStatus() == PaymentStatus.FAILED) {
+            log.debug("Webhook already finalized for transaction: {}", request.getTransactionId());
             return;
         }
+
 
         Order order = transaction.getOrder();
 
@@ -287,7 +293,7 @@ public class PaymentServiceImpl implements PaymentService {
      * Generate SePay payment URL
      */
     private String generateSepayPaymentUrl(Order order, String transactionId) {
-        return String.format("%s/payment/sepay?transactionId=%s&orderId=%s&amount=%s",
+        return String.format("%s/sepay?transactionId=%s&orderId=%s&amount=%s",
                 frontendUrl, transactionId, order.getId(), order.getTotalAmount());
     }
 

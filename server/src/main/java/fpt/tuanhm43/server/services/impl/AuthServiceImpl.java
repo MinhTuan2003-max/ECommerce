@@ -88,8 +88,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Email already exists");
         }
 
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_USER").build()));
+        Role userRole = roleRepository.findByName("ROLE_CUSTOMER")
+                .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_CUSTOMER").build()));
 
         User user = User.builder()
                 .username(request.getUsername())
