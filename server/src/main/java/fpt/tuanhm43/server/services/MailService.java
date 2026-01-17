@@ -13,11 +13,6 @@ public interface MailService {
     void sendOrderConfirmation(Order order);
 
     /**
-     * Send order status update email
-     */
-    void sendOrderStatusUpdate(Order order, String oldStatus, String newStatus);
-
-    /**
      * Send payment confirmation email
      */
     void sendPaymentConfirmation(Order order);

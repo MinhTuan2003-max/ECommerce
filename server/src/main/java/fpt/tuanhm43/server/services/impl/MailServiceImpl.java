@@ -83,25 +83,20 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override @Async
-    public void sendOrderStatusUpdate(Order order, String oldStatus, String newStatus) {
-        Map<String, Object> props = new HashMap<>();
-        props.put(PARAM_CUSTOMER_NAME, order.getCustomerName());
-        props.put(PARAM_ORDER_NUMBER, order.getOrderNumber());
-        props.put("oldStatus", oldStatus);
-        props.put("newStatus", newStatus);
-        props.put(PARAM_TRACKING_URL, buildTrackingUrl(order));
-
-        sendHtmlEmail(order.getCustomerEmail(), "Cập nhật trạng thái đơn hàng #" + order.getOrderNumber(), "order-status-update", props);
-    }
-
-    @Override @Async
     public void sendPaymentConfirmation(Order order) {
         Map<String, Object> props = new HashMap<>();
         props.put(PARAM_CUSTOMER_NAME, order.getCustomerName());
         props.put(PARAM_ORDER_NUMBER, order.getOrderNumber());
         props.put(PARAM_TOTAL_AMOUNT, order.getTotalAmount());
 
-        sendHtmlEmail(order.getCustomerEmail(), "Xác nhận thanh toán #" + order.getOrderNumber(), "payment-confirmation", props);
+        props.put("paymentMethod", order.getPaymentMethod() != null ? order.getPaymentMethod().name() : "Chuyển khoản");
+        props.put("paymentTime", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
+        props.put(PARAM_TRACKING_URL, buildTrackingUrl(order));
+
+        sendHtmlEmail(order.getCustomerEmail(),
+                "HUNG HYPEBEAST - Xác nhận thanh toán đơn hàng #" + order.getOrderNumber(),
+                "payment-confirmation",
+                props);
     }
 
     @Override

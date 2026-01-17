@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base-email :: email-layout(~{::.content})}">
+
+    <div class="content">
+        <p>Chào <strong th:text="${customerName}">Khách hàng</strong>,</p>
+
+        <p>
+            <strong>HUNG HYPEBEAST</strong> xác nhận đơn hàng
+            <strong th:text="${orderNumber}">#ORDER123</strong>
+            của bạn đã được thanh toán thành công.
+        </p>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #000; margin: 20px 0;">
+            <p style="margin: 5px 0;"><strong>Số tiền:</strong>
+                <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">0 VNĐ</span>
+            </p>
+            <p style="margin: 5px 0;"><strong>Phương thức:</strong> <span th:text="${paymentMethod}">Chuyển khoản</span></p>
+            <p style="margin: 5px 0;"><strong>Thời gian:</strong> <span th:text="${paymentTime}">12:00 17/01/2026</span></p>
+        </div>
+
+        <p>Chúng mình đang nhanh chóng chuẩn bị hàng để gửi đến bạn sớm nhất.</p>
+
+        <p style="text-align: center; margin: 30px 0;">
+            <a th:href="${trackingUrl}" class="btn">THEO DÕI ĐƠN HÀNG</a>
+        </p>
+
+        <p>Cảm ơn bạn đã đồng hành cùng HUNG HYPEBEAST!</p>
+    </div>
+</html>
