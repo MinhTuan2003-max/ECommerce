@@ -32,13 +32,6 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryReservationRepository reservationRepository;
     private final OrderRepository orderRepository;
 
-    /**
-     * Reserve stock for checkout (CRITICAL - uses pessimistic lock)
-     *
-     * @param sessionId Session ID for guest checkout
-     * @param items Items to reserve
-     * @param timeoutMinutes Reservation timeout (default 15)
-     */
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void reserveStock(String sessionId, UUID orderId, List<ReservationItem> items, int timeoutMinutes) {
@@ -80,9 +73,6 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
-    /**
-     * Release reservation (timeout or cancel)
-     */
     @Override
     @Transactional
     public void releaseReservation(String sessionId) {
@@ -114,9 +104,6 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("All reservations released for session: {}", sessionId);
     }
 
-    /**
-     * Release reservation by order ID
-     */
     @Override
     @Transactional
     public void releaseReservationByOrder(UUID orderId) {
@@ -142,9 +129,6 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Reservations released for order: {}", orderId);
     }
 
-    /**
-     * Deduct stock after payment confirmed
-     */
     @Override
     @Transactional
     public void deductReservedStock(UUID orderId) {
@@ -190,9 +174,6 @@ public class InventoryServiceImpl implements InventoryService {
         log.info("Stock deduction completed for order: {}", orderId);
     }
 
-    /**
-     * Add stock (restock)
-     */
     @Override
     @Transactional
     public void addStock(UUID variantId, Integer quantity) {
@@ -208,18 +189,12 @@ public class InventoryServiceImpl implements InventoryService {
                 variantId, inventory.getQuantityAvailable());
     }
 
-    /**
-     * Check stock availability
-     */
     @Override
     @Transactional(readOnly = true)
     public boolean checkStockAvailability(UUID variantId, Integer quantity) {
         return inventoryRepository.hasSufficientStock(variantId, quantity);
     }
 
-    /**
-     * Get available stock
-     */
     @Override
     @Transactional(readOnly = true)
     public Integer getAvailableStock(UUID variantId) {
@@ -227,11 +202,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElse(0);
     }
 
-    /**
-     * Cleanup expired reservations (scheduled job)
-     *
-     * @return Number of cleaned up reservations
-     */
     @Override
     @Transactional
     public int cleanupExpiredReservations() {

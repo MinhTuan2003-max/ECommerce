@@ -1,10 +1,7 @@
 package fpt.tuanhm43.server.dtos.product.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +37,9 @@ public class CreateProductVariantRequest {
     @NotNull(message = "Price adjustment is required")
     @Schema(description = "Price difference relative to the base price", example = "500000")
     private BigDecimal priceAdjustment;
+
+    @Min(value = 0, message = "Initial quantity cannot be negative")
+    private Integer initialQuantity;
 
     @Schema(description = "Specific image URL for this variant", example = "https://example.com/aj1-42.jpg")
     private String imageUrl;

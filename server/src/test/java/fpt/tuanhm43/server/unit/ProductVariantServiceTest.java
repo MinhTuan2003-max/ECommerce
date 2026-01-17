@@ -1,11 +1,13 @@
 package fpt.tuanhm43.server.unit;
 
 import fpt.tuanhm43.server.dtos.product.request.CreateProductVariantRequest;
+import fpt.tuanhm43.server.dtos.product.response.ProductVariantResponse;
 import fpt.tuanhm43.server.entities.*;
 import fpt.tuanhm43.server.exceptions.BadRequestException;
 import fpt.tuanhm43.server.mappers.ProductVariantMapper;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import fpt.tuanhm43.server.repositories.ProductVariantRepository;
+import fpt.tuanhm43.server.services.ProductSearchService;
 import fpt.tuanhm43.server.services.impl.ProductVariantServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,9 @@ class ProductVariantServiceTest {
     @Mock private ProductVariantRepository variantRepository;
     @Mock private ProductRepository productRepository;
     @Mock private ProductVariantMapper variantMapper;
+
+    @Mock private ProductSearchService productSearchService;
+
     @InjectMocks private ProductVariantServiceImpl variantService;
 
     @Test
@@ -47,6 +52,8 @@ class ProductVariantServiceTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(variantRepository.save(any(ProductVariant.class))).thenAnswer(i -> i.getArguments()[0]);
 
+        when(variantMapper.toResponse(any(ProductVariant.class))).thenReturn(ProductVariantResponse.builder().build());
+
         variantService.createVariant(productId, request);
 
         verify(variantRepository).save(argThat(v -> {
@@ -54,6 +61,8 @@ class ProductVariantServiceTest {
             assertThat(v.getInventory().getQuantityAvailable()).isZero();
             return true;
         }));
+
+        verify(productSearchService).syncToElasticsearch(productId);
     }
 
     @Test
@@ -67,6 +76,6 @@ class ProductVariantServiceTest {
 
         assertThatThrownBy(() -> variantService.createVariant(UUID.randomUUID(), request))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("đã tồn tại");
+                .hasMessageContaining("already exists");
     }
 }

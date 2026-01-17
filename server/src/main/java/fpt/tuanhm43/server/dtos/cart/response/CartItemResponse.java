@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-/**
- * Cart Item Response DTO
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,18 +27,13 @@ public class CartItemResponse {
     private BigDecimal unitPrice;
     private BigDecimal subtotal;
 
-    // Stock availability
     private Integer availableStock;
     private Boolean inStock;
     private String stockMessage;
 
-    // Price change indicator
     private Boolean priceChanged;
     private BigDecimal currentPrice;
 
-    /**
-     * Update stock availability message
-     */
     public void updateStockMessage() {
         if (availableStock == null) {
             this.inStock = false;

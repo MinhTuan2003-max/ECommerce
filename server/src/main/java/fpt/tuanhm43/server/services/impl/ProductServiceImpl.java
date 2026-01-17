@@ -1,17 +1,25 @@
 package fpt.tuanhm43.server.services.impl;
 
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
-import fpt.tuanhm43.server.dtos.product.request.*;
-import fpt.tuanhm43.server.dtos.product.response.*;
-import fpt.tuanhm43.server.dtos.search.request.AdvancedSearchRequest;
-import fpt.tuanhm43.server.entities.*;
-import fpt.tuanhm43.server.exceptions.*;
-import fpt.tuanhm43.server.repositories.*;
+import fpt.tuanhm43.server.dtos.product.request.CreateProductRequest;
+import fpt.tuanhm43.server.dtos.product.request.ProductFilterRequest;
+import fpt.tuanhm43.server.dtos.product.request.UpdateProductRequest;
+import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
+import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
+import fpt.tuanhm43.server.dtos.search.AdvancedSearchRequest;
+import fpt.tuanhm43.server.entities.Category;
+import fpt.tuanhm43.server.entities.Product;
+import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
+import fpt.tuanhm43.server.mappers.ProductMapper;
+import fpt.tuanhm43.server.repositories.CategoryRepository;
+import fpt.tuanhm43.server.repositories.ProductRepository;
 import fpt.tuanhm43.server.services.ProductService;
+import fpt.tuanhm43.server.services.ProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -22,12 +30,14 @@ import java.util.UUID;
 @Slf4j
 public class ProductServiceImpl implements ProductService {
 
-    private static final String PRODUCT =  "Product";
+    private static final String PRODUCT = "Product";
     private static final String CATEGORY = "Category";
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final ProductSearchServiceImpl productSearchService;
+    private final ProductSearchService productSearchService;
+
+    private final ProductMapper productMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,62 +59,42 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<ProductResponse> searchByKeyword(String keyword, int page, int size) {
-        AdvancedSearchRequest advancedRequest = AdvancedSearchRequest.builder()
+        return productSearchService.advancedSearch(AdvancedSearchRequest.builder()
                 .keyword(keyword)
                 .page(page)
                 .size(size)
                 .fuzzy(true)
-                .build();
-        return productSearchService.advancedSearch(advancedRequest);
+                .build());
     }
 
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<ProductResponse> getByCategory(UUID categoryId, int page, int size) {
-        AdvancedSearchRequest advancedRequest = AdvancedSearchRequest.builder()
+        return productSearchService.advancedSearch(AdvancedSearchRequest.builder()
                 .filters(Map.of("categoryId", categoryId.toString()))
                 .page(page)
                 .size(size)
-                .build();
-        return productSearchService.advancedSearch(advancedRequest);
-    }
-
-    // Tiện ích tạo Range object
-    private AdvancedSearchRequest.RangeValue createRange(BigDecimal from, BigDecimal to) {
-        AdvancedSearchRequest.RangeValue range = new AdvancedSearchRequest.RangeValue();
-        if (from != null) range.setFrom(from.toString());
-        if (to != null) range.setTo(to.toString());
-        return range;
+                .build());
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProductDetailResponse getById(UUID id) {
-        log.info("Getting product by id from database: {}", id);
-
-        Product product = productRepository.findByIdWithVariants(id)
-                .orElseThrow(() -> new ResourceNotFoundException( PRODUCT, "id", id));
-
-        if (Boolean.FALSE.equals(product.getIsActive())) {
-            throw new ResourceNotFoundException( PRODUCT, "id", id);
-        }
-
-        return mapToProductDetailResponse(product);
+        log.info("Getting product by id: {}", id);
+        return productRepository.findByIdWithVariants(id)
+                .filter(p -> Boolean.TRUE.equals(p.getIsActive()))
+                .map(productMapper::toDetailResponse)
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUCT, "id", id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProductDetailResponse getBySlug(String slug) {
-        log.info("Getting product by slug from database: {}", slug);
-
-        Product product = productRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResourceNotFoundException( PRODUCT, "slug", slug));
-
-        if (Boolean.FALSE.equals(product.getIsActive())) {
-            throw new ResourceNotFoundException( PRODUCT, "slug", slug);
-        }
-
-        return mapToProductDetailResponse(product);
+        log.info("Getting product by slug: {}", slug);
+        return productRepository.findBySlug(slug)
+                .filter(p -> Boolean.TRUE.equals(p.getIsActive()))
+                .map(productMapper::toDetailResponse)
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUCT, "slug", slug));
     }
 
     @Override
@@ -114,75 +104,56 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY, "id", request.getCategoryId()));
 
         Product product = Product.builder()
-                .name(request.getName()).slug(request.getSlug()).description(request.getDescription())
-                .basePrice(request.getBasePrice()).category(category).isActive(true).build();
+                .name(request.getName())
+                .slug(request.getSlug())
+                .description(request.getDescription())
+                .basePrice(request.getBasePrice())
+                .category(category)
+                .isActive(true)
+                .build();
 
         Product savedProduct = productRepository.save(product);
+
+        // Sync to Elasticsearch async
         productSearchService.syncToElasticsearch(savedProduct.getId());
-        return mapToProductResponse(savedProduct);
+
+        return productMapper.toResponse(savedProduct);
     }
 
     @Override
     @Transactional
     public ProductResponse update(UUID id, UpdateProductRequest request) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException( PRODUCT, "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUCT, "id", id));
 
-        if (request.getName() != null) product.setName(request.getName());
+        if (StringUtils.hasText(request.getName())) product.setName(request.getName());
         if (request.getBasePrice() != null) product.setBasePrice(request.getBasePrice());
+        if (StringUtils.hasText(request.getDescription())) product.setDescription(request.getDescription());
 
         Product updatedProduct = productRepository.save(product);
+
+        // Sync to Elasticsearch async
         productSearchService.syncToElasticsearch(id);
-        return mapToProductResponse(updatedProduct);
+
+        return productMapper.toResponse(updatedProduct);
     }
 
     @Override
     @Transactional
     public void delete(UUID id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException( PRODUCT, "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUCT, "id", id));
+
         product.setIsActive(false);
         productRepository.save(product);
+
         productSearchService.syncToElasticsearch(id);
     }
 
-    private ProductResponse mapToProductResponse(Product product) {
-        String imageUrl = product.getVariants().stream()
-                .map(ProductVariant::getImageUrl)
-                .filter(img -> img != null && !img.trim().isEmpty())
-                .findFirst()
-                .orElse(product.getImageUrl());
-
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .slug(product.getSlug())
-                .description(product.getDescription())
-                .categoryId(product.getCategory().getId())
-                .categoryName(product.getCategory().getName())
-                .minPrice(product.getMinPrice())
-                .imageUrl(imageUrl)
-                .isActive(product.getIsActive())
-                .createdAt(product.getCreatedAt())
-                .build();
-    }
-
-    private ProductDetailResponse mapToProductDetailResponse(Product product) {
-        return ProductDetailResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .slug(product.getSlug())
-                .description(product.getDescription())
-                .basePrice(product.getBasePrice())
-                .imageUrl(product.getImageUrl())
-                .isActive(product.getIsActive())
-                .categoryId(product.getCategory().getId())
-                .categoryName(product.getCategory().getName())
-                .minPrice(product.getMinPrice())
-                .maxPrice(product.getMaxPrice())
-                .inStock(product.getVariants() != null && !product.getVariants().isEmpty())
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
-                .build();
+    private AdvancedSearchRequest.RangeValue createRange(BigDecimal from, BigDecimal to) {
+        AdvancedSearchRequest.RangeValue range = new AdvancedSearchRequest.RangeValue();
+        if (from != null) range.setFrom(from.toString());
+        if (to != null) range.setTo(to.toString());
+        return range;
     }
 }

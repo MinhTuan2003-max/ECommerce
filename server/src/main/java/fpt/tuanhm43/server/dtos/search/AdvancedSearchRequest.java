@@ -1,4 +1,4 @@
-package fpt.tuanhm43.server.dtos.search.request;
+package fpt.tuanhm43.server.dtos.search;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +13,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdvancedSearchRequest {
+    @Builder.Default
     private Integer page = 0;
     private Integer size = 20;
     private String keyword;

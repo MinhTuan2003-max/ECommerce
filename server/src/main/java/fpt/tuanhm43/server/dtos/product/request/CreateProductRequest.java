@@ -37,5 +37,6 @@ public class CreateProductRequest {
 
     private String imageUrl;
 
+    @Builder.Default
     private Boolean isActive = true;
 }

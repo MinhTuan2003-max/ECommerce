@@ -188,6 +188,9 @@ public class Order extends BaseEntity {
      * Get total items count
      */
     public Integer getTotalItemsCount() {
+        if (items == null || items.isEmpty()) {
+            return 0;
+        }
         return items.stream()
                 .mapToInt(OrderItem::getQuantity)
                 .sum();

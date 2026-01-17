@@ -287,8 +287,6 @@ public class PaymentServiceImpl implements PaymentService {
      * Generate SePay payment URL
      */
     private String generateSepayPaymentUrl(Order order, String transactionId) {
-        // This would typically call SePay API to generate payment link
-        // For MVP, generate a mock URL
         return String.format("%s/payment/sepay?transactionId=%s&orderId=%s&amount=%s",
                 frontendUrl, transactionId, order.getId(), order.getTotalAmount());
     }

@@ -6,7 +6,7 @@ import fpt.tuanhm43.server.dtos.product.request.CreateProductRequest;
 import fpt.tuanhm43.server.dtos.product.request.UpdateProductRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductDetailResponse;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
-import fpt.tuanhm43.server.dtos.search.request.AdvancedSearchRequest;
+import fpt.tuanhm43.server.dtos.search.AdvancedSearchRequest;
 import fpt.tuanhm43.server.services.ProductSearchService;
 import fpt.tuanhm43.server.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;

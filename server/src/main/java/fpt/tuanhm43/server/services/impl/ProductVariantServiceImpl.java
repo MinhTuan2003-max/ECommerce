@@ -10,8 +10,10 @@ import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
 import fpt.tuanhm43.server.mappers.ProductVariantMapper;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import fpt.tuanhm43.server.repositories.ProductVariantRepository;
+import fpt.tuanhm43.server.services.ProductSearchService;
 import fpt.tuanhm43.server.services.ProductVariantService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,16 +23,21 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ProductVariantServiceImpl implements ProductVariantService {
 
     private final ProductVariantRepository variantRepository;
     private final ProductRepository productRepository;
+    private final ProductSearchService productSearchService;
+
     private final ProductVariantMapper variantMapper;
 
     @Override
     public ProductVariantResponse createVariant(UUID productId, CreateProductVariantRequest request) {
+        log.info("Creating variant for product: {}, SKU: {}", productId, request.getSku());
+
         if (variantRepository.existsBySku(request.getSku())) {
-            throw new BadRequestException("SKU " + request.getSku() + " đã tồn tại!");
+            throw new BadRequestException("SKU " + request.getSku() + " already exists");
         }
 
         Product product = productRepository.findById(productId)
@@ -49,19 +56,30 @@ public class ProductVariantServiceImpl implements ProductVariantService {
 
         Inventory inventory = Inventory.builder()
                 .productVariant(variant)
-                .quantityAvailable(0)
+                .quantityAvailable(request.getInitialQuantity() != null ? request.getInitialQuantity() : 0)
                 .quantityReserved(0)
                 .build();
 
         variant.setInventory(inventory);
 
-        return variantMapper.toResponse(variantRepository.save(variant));
+        ProductVariant savedVariant = variantRepository.save(variant);
+
+        productSearchService.syncToElasticsearch(productId);
+
+        return variantMapper.toResponse(savedVariant);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductVariantResponse> getVariantsByProductId(UUID productId) {
+        log.debug("Getting variants for product: {}", productId);
+
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("Product", "id", productId);
+        }
+
         List<ProductVariant> variants = variantRepository.findByProductId(productId);
         return variantMapper.toResponseList(variants);
     }
+
 }

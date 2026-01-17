@@ -2,9 +2,11 @@ package fpt.tuanhm43.server.unit;
 
 import fpt.tuanhm43.server.dtos.cart.request.AddToCartRequest;
 import fpt.tuanhm43.server.dtos.cart.request.UpdateCartItemRequest;
+import fpt.tuanhm43.server.dtos.cart.response.CartItemResponse;
 import fpt.tuanhm43.server.dtos.cart.response.CartResponse;
 import fpt.tuanhm43.server.entities.*;
 import fpt.tuanhm43.server.exceptions.InsufficientStockException;
+import fpt.tuanhm43.server.mappers.CartMapper;
 import fpt.tuanhm43.server.repositories.*;
 import fpt.tuanhm43.server.services.impl.CartServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,6 +37,8 @@ class CartServiceTest {
     @Mock private CartItemRepository cartItemRepository;
     @Mock private ProductVariantRepository variantRepository;
     @Mock private InventoryRepository inventoryRepository;
+
+    @Mock private CartMapper cartMapper;
 
     @InjectMocks private CartServiceImpl cartService;
 
@@ -71,18 +76,28 @@ class CartServiceTest {
     @Test
     @DisplayName("Thêm vào giỏ: Thành công khi kho còn đủ hàng")
     void addToCart_Success() {
-
         AddToCartRequest request = new AddToCartRequest(variantId, 2);
 
         when(cartRepository.findBySessionId(sessionId)).thenReturn(Optional.of(mockCart));
+        when(cartRepository.save(any(ShoppingCart.class))).thenReturn(mockCart);
         when(variantRepository.findById(variantId)).thenReturn(Optional.of(mockVariant));
         when(inventoryRepository.findByProductVariantId(variantId)).thenReturn(Optional.of(mockInventory));
+
+        CartResponse dummyResponse = CartResponse.builder()
+                .sessionId(sessionId)
+                .totalItems(2)
+                .totalAmount(new BigDecimal("1000000"))
+                .items(List.of(CartItemResponse.builder().quantity(2).build())) // List có 1 item
+                .build();
+
+        when(cartMapper.toCartResponse(any(ShoppingCart.class))).thenReturn(dummyResponse);
 
         CartResponse response = cartService.addToCart(sessionId, request);
 
         assertThat(response.getTotalItems()).isEqualTo(2);
         assertThat(response.getItems()).hasSize(1);
         assertThat(response.getTotalAmount()).isEqualByComparingTo(new BigDecimal("1000000"));
+
         verify(cartItemRepository, times(1)).save(any(CartItem.class));
         log.info("Test Passed: Đã thêm 2 Áo Thun Rồng vào giỏ thành công.");
     }
@@ -107,25 +122,29 @@ class CartServiceTest {
     @DisplayName("Cập nhật giỏ: Tăng số lượng và check kho lần nữa")
     void updateCartItem_Success() {
         BigDecimal unitPrice = new BigDecimal("500000");
-        int quantity = 2;
+        int initialQty = 2;
+        int targetQty = 4;
 
         CartItem existingItem = CartItem.builder()
                 .productVariant(mockVariant)
-                .quantity(2)
-                .unitPrice(new BigDecimal("500000"))
-                .subtotal(unitPrice.multiply(BigDecimal.valueOf(quantity)))
+                .quantity(initialQty) // Ban đầu là 2
+                .unitPrice(unitPrice)
+                .subtotal(unitPrice.multiply(BigDecimal.valueOf(initialQty)))
                 .build();
+
         mockCart.addItem(existingItem);
 
         UpdateCartItemRequest updateRequest = new UpdateCartItemRequest();
-        updateRequest.setQuantity(4);
+        updateRequest.setQuantity(targetQty); // Muốn đổi thành 4
 
         when(cartRepository.findBySessionIdWithItems(sessionId)).thenReturn(Optional.of(mockCart));
         when(inventoryRepository.findByProductVariantId(variantId)).thenReturn(Optional.of(mockInventory));
+        when(cartRepository.save(any(ShoppingCart.class))).thenReturn(mockCart);
+        when(cartMapper.toCartResponse(any(ShoppingCart.class)))
+                .thenReturn(CartResponse.builder().sessionId(sessionId).build());
 
         cartService.update(sessionId, variantId, updateRequest);
-
-        assertThat(existingItem.getQuantity()).isEqualTo(4);
+        verify(cartItemRepository).save(argThat(savedItem -> savedItem.getQuantity() == 4));
         verify(cartRepository).save(mockCart);
     }
 }

@@ -2,7 +2,7 @@ package fpt.tuanhm43.server.services;
 
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
-import fpt.tuanhm43.server.dtos.search.request.AdvancedSearchRequest;
+import fpt.tuanhm43.server.dtos.search.AdvancedSearchRequest;
 
 import java.util.UUID;
 

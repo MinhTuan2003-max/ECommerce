@@ -54,5 +54,9 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             Pageable pageable
     );
 
+    /**
+     * Count orders created after a specific date
+     */
+    long countByCreatedAtAfter(LocalDateTime dateTime);
 }
 

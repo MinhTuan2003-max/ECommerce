@@ -6,6 +6,7 @@ import fpt.tuanhm43.server.dtos.order.response.OrderDetailResponse;
 import fpt.tuanhm43.server.entities.*;
 import fpt.tuanhm43.server.enums.OrderStatus;
 import fpt.tuanhm43.server.exceptions.ResourceNotFoundException;
+import fpt.tuanhm43.server.mappers.OrderMapper;
 import fpt.tuanhm43.server.repositories.OrderRepository;
 import fpt.tuanhm43.server.repositories.ProductVariantRepository;
 import fpt.tuanhm43.server.repositories.ShoppingCartRepository;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,6 +40,8 @@ class OrderServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private ProductVariantRepository variantRepository;
     @Mock private MailService mailService;
+
+    @Mock private OrderMapper orderMapper;
 
     @InjectMocks private OrderServiceImpl orderService;
 
@@ -64,13 +66,16 @@ class OrderServiceTest {
         ShoppingCart cart = ShoppingCart.builder().sessionId(sessionId).items(List.of(item)).build();
 
         when(cartRepository.findBySessionId(sessionId)).thenReturn(Optional.of(cart));
-        when(orderRepository.findByDateRange(any(), any(), any())).thenReturn(new PageImpl<>(List.of()));
+
+        when(orderRepository.countByCreatedAtAfter(any())).thenReturn(0L);
 
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order o = invocation.getArgument(0);
             o.setId(orderId);
             return o;
         });
+
+        when(orderMapper.toDetailResponse(any())).thenReturn(OrderDetailResponse.builder().build());
 
         orderService.createOrderFromCart(sessionId, new CreateOrderRequest());
 
@@ -92,14 +97,15 @@ class OrderServiceTest {
 
         when(variantRepository.findById(variantId)).thenReturn(Optional.of(variant));
 
-        when(orderRepository.findByDateRange(any(), any(), any()))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(orderRepository.countByCreatedAtAfter(any())).thenReturn(0L);
 
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order o = invocation.getArgument(0);
             o.setId(orderId);
             return o;
         });
+
+        when(orderMapper.toDetailResponse(any())).thenReturn(OrderDetailResponse.builder().build());
 
         orderService.createOrder(request);
 
@@ -119,6 +125,12 @@ class OrderServiceTest {
                 .build();
 
         when(orderRepository.findByTrackingToken(secureToken)).thenReturn(Optional.of(mockOrder));
+
+        OrderDetailResponse dummyResponse = OrderDetailResponse.builder()
+                .trackingToken(secureToken)
+                .status(OrderStatus.CONFIRMED)
+                .build();
+        when(orderMapper.toDetailResponse(any(Order.class))).thenReturn(dummyResponse);
 
         OrderDetailResponse result = orderService.getOrderByTrackingToken(secureToken);
 

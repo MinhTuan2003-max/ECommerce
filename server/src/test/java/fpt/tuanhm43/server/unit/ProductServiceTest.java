@@ -3,7 +3,7 @@ package fpt.tuanhm43.server.unit;
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
 import fpt.tuanhm43.server.dtos.product.request.ProductFilterRequest;
 import fpt.tuanhm43.server.dtos.product.response.ProductResponse;
-import fpt.tuanhm43.server.dtos.search.request.AdvancedSearchRequest;
+import fpt.tuanhm43.server.dtos.search.AdvancedSearchRequest;
 import fpt.tuanhm43.server.repositories.CategoryRepository;
 import fpt.tuanhm43.server.repositories.ProductRepository;
 import fpt.tuanhm43.server.services.impl.ProductServiceImpl;
