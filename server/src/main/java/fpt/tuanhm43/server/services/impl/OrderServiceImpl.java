@@ -263,4 +263,5 @@ public class OrderServiceImpl implements OrderService {
         try { mailService.sendOrderConfirmation(order); }
         catch (Exception e) { log.warn("Email failed for order {}", order.getOrderNumber()); }
     }
+
 }

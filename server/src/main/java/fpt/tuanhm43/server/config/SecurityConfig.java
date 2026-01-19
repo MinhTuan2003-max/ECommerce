@@ -111,6 +111,7 @@ public class SecurityConfig {
                         .requestMatchers("/payment-demo/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/v1/payments/status/**").permitAll()
+                        .requestMatchers(POST, "/api/v1/payments/*/initiate").permitAll()
                         .requestMatchers(POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)
                         .requestMatchers(PUT, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)
                         .requestMatchers(DELETE, AppConstants.API_PRODUCT).hasRole(AppConstants.ROLE_ADMIN)

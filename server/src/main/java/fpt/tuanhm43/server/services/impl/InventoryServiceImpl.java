@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +44,9 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(timeoutMinutes);
+
+        List<ReservationItem> sortedItems = new ArrayList<>(items);
+        sortedItems.sort(Comparator.comparing(ReservationItem::variantId));
 
         for (ReservationItem item : items) {
             Inventory inventory = inventoryRepository

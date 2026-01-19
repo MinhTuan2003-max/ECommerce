@@ -31,8 +31,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/{orderId}/initiate")
-    @Operation(summary = "Initiate payment", description = "Starts the payment process for an order. Supports COD (Cash on Delivery) and SEPAY (Bank Transfer).")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    @Operation(summary = "Initiate payment", description = "Starts the payment process. Supports Guest Checkout.")
     public ResponseEntity<ApiResponseDTO<PaymentStatusResponse>> initiatePayment(
             @Parameter(description = "ID of the order to pay") @PathVariable("orderId") UUID orderId,
             @Parameter(description = "Method of payment", example = "SEPAY") @RequestParam("method") PaymentMethod method) {
