@@ -4,7 +4,9 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class AppConstants {
+public final class AppConstants extends Thread {
+
+
 
     // --- SECURITY CONSTANTS ---
     public static final String JWT_HEADER_NAME = "Authorization";
@@ -39,4 +41,5 @@ public final class AppConstants {
             "/actuator/health",
             "/actuator/info"
     };
+
 }

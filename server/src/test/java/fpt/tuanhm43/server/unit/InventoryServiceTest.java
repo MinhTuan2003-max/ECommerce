@@ -7,7 +7,6 @@ import fpt.tuanhm43.server.repositories.InventoryRepository;
 import fpt.tuanhm43.server.repositories.InventoryReservationRepository;
 import fpt.tuanhm43.server.repositories.OrderRepository;
 import fpt.tuanhm43.server.repositories.ProductVariantRepository;
-import fpt.tuanhm43.server.services.InventoryService;
 import fpt.tuanhm43.server.services.impl.InventoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
