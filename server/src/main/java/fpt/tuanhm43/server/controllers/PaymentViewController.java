@@ -1,5 +1,7 @@
 package fpt.tuanhm43.server.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,11 +12,17 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Controller
+@Tag(name = "Payment SePay Demo", description = "Returns an HTML view containing a dynamic SePay QR code.")
 public class PaymentViewController {
 
-    private static final String MY_BANK_ACCOUNT = "0335666888"; // Thay số của bạn
-    private static final String MY_BANK_NAME = "MBBank";        // Thay ngân hàng của bạn
+    private static final String MY_BANK_ACCOUNT = "22731271";
+    private static final String MY_BANK_NAME = "ACB";
 
+    @Operation(
+            summary = "SePay Payment Demo View",
+            description = "Includes a developer tool to simulate a successful webhook trigger and a client-side " +
+                    "polling script to check transaction status."
+    )
     @GetMapping("/payment-demo/sepay")
     @ResponseBody
     public String viewPaymentQr(@RequestParam String transactionId,

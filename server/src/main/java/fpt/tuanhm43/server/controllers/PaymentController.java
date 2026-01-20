@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -71,7 +70,6 @@ public class PaymentController {
     }
 
     @PostMapping("/webhook/sepay")
-    @Transactional
     @Operation(summary = "SePay Webhook Listener", description = "Public endpoint used by SePay to notify our system about successful bank transfers. Do not call this manually unless testing.")
     @ApiResponse(responseCode = "200", description = "Webhook received and processed")
     public ResponseEntity<ApiResponseDTO<Void>> handleSepayWebhook(

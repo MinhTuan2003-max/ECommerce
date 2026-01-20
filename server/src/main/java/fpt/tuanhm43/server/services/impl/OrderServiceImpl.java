@@ -20,10 +20,14 @@ import fpt.tuanhm43.server.services.OrderService;
 import fpt.tuanhm43.server.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,13 +59,25 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @Retryable(
+            retryFor = { ObjectOptimisticLockingFailureException.class, ConcurrencyFailureException.class },
+            maxAttempts = 10,
+            backoff = @Backoff(delay = 100, multiplier = 2) // Lần 1 chờ 100ms, lần 2 chờ 200ms...
+    )
     public OrderDetailResponse createOrderFromCart(String sessionId, CreateOrderRequest request) {
         log.info("Creating order from cart - Session: {}", sessionId);
 
         UUID currentUserId = SecurityUtils.getCurrentUserId();
-        ShoppingCart cart = cartRepository.findByUserId(currentUserId)
-                .orElseGet(() -> cartRepository.findBySessionId(sessionId)
-                        .orElseThrow(() -> new BadRequestException("Cart not found or expired")));
+        ShoppingCart cart;
+
+        if (currentUserId != null) {
+            cart = cartRepository.findByUserId(currentUserId)
+                    .orElseGet(() -> cartRepository.findBySessionId(sessionId)
+                            .orElseThrow(() -> new BadRequestException("Cart not found or expired")));
+        } else {
+            cart = cartRepository.findBySessionId(sessionId)
+                    .orElseThrow(() -> new BadRequestException("Cart not found or expired"));
+        }
 
         if (!cart.hasItems()) throw new BadRequestException("Cart is empty");
         if (!cart.validateStock()) throw new BadRequestException("Some items are out of stock");
