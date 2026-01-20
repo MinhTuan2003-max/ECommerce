@@ -37,7 +37,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void reserveStock(String sessionId, UUID orderId, List<ReservationItem> items, int timeoutMinutes) {
-        log.info("Reserving stock for session: {}, order: {}, items: {}, timeout: {} min",
+        log.debug("Reserving stock for session: {}, order: {}, items: {}, timeout: {} min",
                 sessionId, orderId, items.size(), timeoutMinutes);
 
         Order order = orderRepository.findById(orderId)
@@ -48,7 +48,7 @@ public class InventoryServiceImpl implements InventoryService {
         List<ReservationItem> sortedItems = new ArrayList<>(items);
         sortedItems.sort(Comparator.comparing(ReservationItem::variantId));
 
-        for (ReservationItem item : items) {
+        for (ReservationItem item : sortedItems) {
             Inventory inventory = inventoryRepository
                     .findByVariantIdWithLock(item.variantId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -73,7 +73,7 @@ public class InventoryServiceImpl implements InventoryService {
 
             reservationRepository.save(reservation);
 
-            log.info("Reserved {} units of variant {} for order {}",
+            log.debug("Reserved {} units of variant {} for order {}",
                     item.quantity(), item.variantId(), order.getOrderNumber());
         }
     }
