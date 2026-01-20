@@ -110,6 +110,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/orders/track/**").permitAll()
                         .requestMatchers("/payment-demo/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(PUT, "/api/v1/orders/*/cancel").permitAll()
                         .requestMatchers("/api/v1/payments/status/**").permitAll()
                         .requestMatchers(POST, "/api/v1/payments/*/initiate").permitAll()
                         .requestMatchers(POST, "/api/v1/products").hasRole(AppConstants.ROLE_ADMIN)

@@ -62,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
     @Retryable(
             retryFor = { ObjectOptimisticLockingFailureException.class, ConcurrencyFailureException.class },
             maxAttempts = 10,
-            backoff = @Backoff(delay = 100, multiplier = 2) // Lần 1 chờ 100ms, lần 2 chờ 200ms...
+            backoff = @Backoff(delay = 100, multiplier = 2)
     )
     public OrderDetailResponse createOrderFromCart(String sessionId, CreateOrderRequest request) {
         log.info("Creating order from cart - Session: {}", sessionId);

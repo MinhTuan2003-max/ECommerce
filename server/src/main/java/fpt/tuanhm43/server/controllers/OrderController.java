@@ -107,8 +107,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/cancel")
-    @Operation(summary = "Cancel order", description = "Allows customers to cancel their own order or Admin to cancel any order. Required role: CUSTOMER or ADMIN.", security = @SecurityRequirement(name = "bearerAuth"))
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    @Operation(summary = "Cancel order", description = "Allows guests or customers to cancel their own order or Admin to cancel any order.")
     public ResponseEntity<ApiResponseDTO<OrderDetailResponse>> cancelOrder(
             @PathVariable("id") UUID id,
             @Parameter(description = "Reason for cancellation") @RequestParam(value = "reason", required = false) String reason) {
