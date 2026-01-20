@@ -38,8 +38,8 @@ public class MailServiceImpl implements MailService {
     @Value("${app.mail.from-name}")
     private String fromName;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
-    private String frontendUrl;
+    @Value("${app.backend.url:http://localhost:5173}")
+    private String backendUrl;
 
     @Override @Async
     public void sendOrderConfirmation(Order order) {
@@ -102,7 +102,7 @@ public class MailServiceImpl implements MailService {
     @Override
     @Async
     public void sendPasswordResetEmail(String name, String to, String token) {
-        String resetUrl = frontendUrl + "/reset-password?token=" + token;
+        String resetUrl = backendUrl + "/reset-password?token=" + token;
 
         Map<String, Object> props = new HashMap<>();
         props.put(PARAM_CUSTOMER_NAME, name);
@@ -113,7 +113,7 @@ public class MailServiceImpl implements MailService {
     }
 
     private String buildTrackingUrl(Order order) {
-        return frontendUrl + "/track/" + order.getTrackingToken();
+        return backendUrl + "/track/" + order.getTrackingToken();
     }
 
     private void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> properties) {

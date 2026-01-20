@@ -18,7 +18,7 @@ public class InventoryCleanupScheduler {
      * Runs every 1 minute to ensure high availability of stock.
      * fixedRate = 60000ms (1 minute)
      */
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000, initialDelay = 5000)
     public void cleanupExpiredReservations() {
         log.debug("InventoryCleanupScheduler: Starting scheduled task to release expired stock...");
 

@@ -44,7 +44,7 @@ public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, UUID
     /**
      * Delete expired carts
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM ShoppingCart c WHERE c.expiresAt < :now")
     int deleteExpiredCarts(@Param("now") LocalDateTime now);
 
