@@ -1,5 +1,6 @@
 package fpt.tuanhm43.server.unit;
 
+import fpt.tuanhm43.server.dtos.inventory.ReservationItem;
 import fpt.tuanhm43.server.entities.*;
 import fpt.tuanhm43.server.exceptions.InsufficientStockException;
 import fpt.tuanhm43.server.repositories.InventoryRepository;
@@ -59,8 +60,8 @@ class InventoryServiceTest {
     @Test
     @DisplayName("Reserve stock success when quantity is sufficient")
     void reserveStock_Success() {
-        List<InventoryService.ReservationItem> items = List.of(
-                new InventoryService.ReservationItem(variantId, 2)
+        List<ReservationItem> items = List.of(
+                new ReservationItem(variantId, 2)
         );
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));
@@ -76,8 +77,8 @@ class InventoryServiceTest {
     @Test
     @DisplayName("Throw InsufficientStockException when stock is not enough")
     void reserveStock_InsufficientStock() {
-        List<InventoryService.ReservationItem> items = List.of(
-                new InventoryService.ReservationItem(variantId, 15)
+        List<ReservationItem> items = List.of(
+                new ReservationItem(variantId, 15)
         );
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));

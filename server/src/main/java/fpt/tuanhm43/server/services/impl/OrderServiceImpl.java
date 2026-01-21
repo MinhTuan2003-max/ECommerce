@@ -1,6 +1,7 @@
 package fpt.tuanhm43.server.services.impl;
 
 import fpt.tuanhm43.server.dtos.PageResponseDTO;
+import fpt.tuanhm43.server.dtos.inventory.ReservationItem;
 import fpt.tuanhm43.server.dtos.order.request.CreateOrderRequest;
 import fpt.tuanhm43.server.dtos.order.request.OrderFilterRequest;
 import fpt.tuanhm43.server.dtos.order.request.OrderItemRequest;
@@ -83,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
         if (!cart.validateStock()) throw new BadRequestException("Some items are out of stock");
 
         Order order = buildBaseOrder(request);
-        List<InventoryService.ReservationItem> reservationItems = new ArrayList<>();
+        List<ReservationItem> reservationItems = new ArrayList<>();
 
         for (CartItem cartItem : cart.getItems()) {
             OrderItem orderItem = OrderItem.builder()
@@ -94,7 +95,7 @@ public class OrderServiceImpl implements OrderService {
                     .subtotal(cartItem.getSubtotal())
                     .build();
             order.addItem(orderItem);
-            reservationItems.add(new InventoryService.ReservationItem(cartItem.getProductVariant().getId(), cartItem.getQuantity()));
+            reservationItems.add(new ReservationItem(cartItem.getProductVariant().getId(), cartItem.getQuantity()));
         }
 
         order.calculateTotals();
@@ -126,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = buildBaseOrder(request);
-        List<InventoryService.ReservationItem> reservationItems = new ArrayList<>();
+        List<ReservationItem> reservationItems = new ArrayList<>();
 
         for (OrderItemRequest itemRequest : request.getItems()) {
             ProductVariant variant = variantRepository.findById(itemRequest.getVariantId())
@@ -140,7 +141,7 @@ public class OrderServiceImpl implements OrderService {
                     .subtotal(variant.getFinalPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity())))
                     .build();
             order.addItem(orderItem);
-            reservationItems.add(new InventoryService.ReservationItem(itemRequest.getVariantId(), itemRequest.getQuantity()));
+            reservationItems.add(new ReservationItem(itemRequest.getVariantId(), itemRequest.getQuantity()));
         }
 
         order.calculateTotals();

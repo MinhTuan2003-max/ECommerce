@@ -1,5 +1,7 @@
 package fpt.tuanhm43.server.services;
 
+import fpt.tuanhm43.server.dtos.inventory.ReservationItem;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -49,8 +51,4 @@ public interface InventoryService {
      */
     int cleanupExpiredReservations();
 
-    /**
-     * Reservation Item DTO
-     */
-    record ReservationItem(UUID variantId, Integer quantity) {}
 }

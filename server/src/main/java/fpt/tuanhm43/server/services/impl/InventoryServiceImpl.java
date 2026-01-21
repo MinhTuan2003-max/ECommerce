@@ -1,5 +1,6 @@
 package fpt.tuanhm43.server.services.impl;
 
+import fpt.tuanhm43.server.dtos.inventory.ReservationItem;
 import fpt.tuanhm43.server.entities.Inventory;
 import fpt.tuanhm43.server.entities.InventoryReservation;
 import fpt.tuanhm43.server.entities.Order;

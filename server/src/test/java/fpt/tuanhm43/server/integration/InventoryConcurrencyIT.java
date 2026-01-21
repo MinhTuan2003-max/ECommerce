@@ -1,5 +1,6 @@
 package fpt.tuanhm43.server.integration;
 
+import fpt.tuanhm43.server.dtos.inventory.ReservationItem;
 import fpt.tuanhm43.server.entities.Inventory;
 import fpt.tuanhm43.server.entities.Order;
 import fpt.tuanhm43.server.entities.Product;
@@ -111,7 +112,7 @@ class InventoryConcurrencyIT {
                 try {
                     startLatch.await();
                     inventoryService.reserveStock(sessionId, orderId,
-                            List.of(new InventoryService.ReservationItem(variantId, 1)), 15);
+                            List.of(new ReservationItem(variantId, 1)), 15);
                     successCount.incrementAndGet();
                 } catch (InsufficientStockException e) {
                     failCount.incrementAndGet();
